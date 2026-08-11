@@ -31,6 +31,8 @@ class BinaryMetrics:
     false_positive: int
     false_negative: int
     true_positive: int
+    false_positive_rate: float
+    false_negative_rate: float
     threshold: float
 
     def to_dict(self) -> dict[str, float | int]:
@@ -53,37 +55,122 @@ def positive_class_probability(model, X) -> np.ndarray:
 # Metrics
 # -------------------
 
+# -------------------
+# Metrics
+# -------------------
+
 def evaluate_probabilities(
     y_true,
     probabilities,
     *,
     threshold: float,
 ) -> BinaryMetrics:
-    """Evaluate a fixed probability threshold."""
+    """Evaluate binary predictions at a fixed probability threshold."""
 
-    predictions = (np.asarray(probabilities) >= threshold).astype(int)
+    probabilities = np.asarray(probabilities)
+
+    predictions = (
+        probabilities >= threshold
+    ).astype(int)
+
+    # -------------------
+    # Confusion matrix
+    # -------------------
+
     tn, fp, fn, tp = confusion_matrix(
         y_true,
         predictions,
         labels=[0, 1],
     ).ravel()
 
+    # -------------------
+    # Error rates
+    # -------------------
+
+    false_positive_rate = (
+        fp / (fp + tn)
+        if (fp + tn) > 0
+        else 0.0
+    )
+
+    false_negative_rate = (
+        fn / (fn + tp)
+        if (fn + tp) > 0
+        else 0.0
+    )
+
+    # -------------------
+    # Evaluation result
+    # -------------------
+
     return BinaryMetrics(
-        accuracy=float(accuracy_score(y_true, predictions)),
-        precision=float(precision_score(y_true, predictions, zero_division=0)),
-        recall=float(recall_score(y_true, predictions, zero_division=0)),
-        f1=float(f1_score(y_true, predictions, zero_division=0)),
-        roc_auc=float(roc_auc_score(y_true, probabilities)),
+        accuracy=float(
+            accuracy_score(
+                y_true,
+                predictions,
+            )
+        ),
+        precision=float(
+            precision_score(
+                y_true,
+                predictions,
+                zero_division=0,
+            )
+        ),
+        recall=float(
+            recall_score(
+                y_true,
+                predictions,
+                zero_division=0,
+            )
+        ),
+        f1=float(
+            f1_score(
+                y_true,
+                predictions,
+                zero_division=0,
+            )
+        ),
+        roc_auc=float(
+            roc_auc_score(
+                y_true,
+                probabilities,
+            )
+        ),
         average_precision=float(
-            average_precision_score(y_true, probabilities)
+            average_precision_score(
+                y_true,
+                probabilities,
+            )
         ),
         true_negative=int(tn),
         false_positive=int(fp),
         false_negative=int(fn),
         true_positive=int(tp),
+        false_positive_rate=float(
+            false_positive_rate
+        ),
+        false_negative_rate=float(
+            false_negative_rate
+        ),
         threshold=float(threshold),
     )
 
+    # -------------------
+    # Error rates
+    # -------------------
+
+    false_positive_rate = (
+        fp / (fp + tn)
+        if (fp + tn) > 0
+        else 0.0
+    )
+
+    false_negative_rate = (
+        fn / (fn + tp)
+        if (fn + tp) > 0
+        else 0.0
+    )
 
 # -------------------
 # Threshold optimization
