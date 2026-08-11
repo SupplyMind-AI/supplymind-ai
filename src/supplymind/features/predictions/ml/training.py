@@ -7,6 +7,8 @@ from sklearn.linear_model import LogisticRegression
 from sklearn.pipeline import Pipeline
 from xgboost import XGBClassifier
 
+from supplymind.features.predictions.ml.features import ShipmentFeatureEngineer
+
 
 # -------------------
 # Candidate estimators
@@ -23,11 +25,10 @@ def build_logistic_regression(*, random_state: int = 42):
 
 
 def build_random_forest(*, random_state: int = 42):
-    """Nonlinear ensemble candidate with robust tabular performance."""
+    """Nonlinear bagging ensemble candidate."""
 
     return RandomForestClassifier(
         n_estimators=300,
-        max_depth=None,
         min_samples_leaf=2,
         class_weight="balanced",
         random_state=random_state,
@@ -36,7 +37,7 @@ def build_random_forest(*, random_state: int = 42):
 
 
 def build_xgboost(*, random_state: int = 42):
-    """Boosted-tree candidate aligned with the SynDelay benchmark family."""
+    """Boosted-tree candidate aligned with the SynDelay baseline family."""
 
     return XGBClassifier(
         n_estimators=500,
@@ -53,7 +54,7 @@ def build_xgboost(*, random_state: int = 42):
 
 
 def build_hist_gradient_boosting(*, random_state: int = 42):
-    """Optional fourth sklearn-native boosting candidate."""
+    """Optional sklearn-native boosting candidate."""
 
     return HistGradientBoostingClassifier(
         learning_rate=0.08,
@@ -69,10 +70,11 @@ def build_hist_gradient_boosting(*, random_state: int = 42):
 # -------------------
 
 def fit_pipeline(preprocessor, estimator, X, y) -> Pipeline:
-    """Fit preprocessing and estimator as one serving artifact."""
+    """Fit feature engineering, preprocessing, and estimator as one artifact."""
 
     pipeline = Pipeline(
         [
+            ("feature_engineering", ShipmentFeatureEngineer()),
             ("preprocessor", preprocessor),
             ("model", estimator),
         ]

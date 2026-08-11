@@ -31,8 +31,7 @@ Every model feature must be available at this moment.
 - `1`: delayed
 - `0`: not delayed
 
-The exact target derivation must be confirmed from SynDelay documentation.
-Columns used to derive the target must never be passed as model inputs.
+The downloaded SynDelay v1 CSV provides the multiclass source target `label` (0 early, 1 on-time, 2 delayed). SupplyMind preserves this as `delivery_outcome` and derives `is_delayed`, where classes 0/1 map to 0 and class 2 maps to 1. All target-derived columns are excluded from model inputs.
 ## Success metrics
 
 **Primary ML metrics**

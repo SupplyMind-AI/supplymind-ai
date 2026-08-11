@@ -94,4 +94,8 @@ def numeric_correlation_report(
         .sort_values(key=lambda s: s.abs(), ascending=False)
     )
 
-    return correlations.rename("correlation").reset_index(names="feature")
+    return (
+        correlations.rename("correlation")
+        .reset_index()
+        .rename(columns={"index": "feature"})
+    )

@@ -17,22 +17,21 @@ def build_preprocessor(
     categorical_features: list[str],
     *,
     scale_numerical: bool,
+    sparse_output: bool = True,
 ) -> ColumnTransformer:
-    """Build a model-safe preprocessing transformer.
+    """Build the estimator-specific preprocessing transformer.
 
-    Categorical values are one-hot encoded with unknown-category tolerance.
     Numerical values are median-imputed and optionally standardized.
+    Categorical values are one-hot encoded with unknown-category tolerance.
     """
 
     numeric_steps: list[tuple[str, object]] = [
         ("imputer", SimpleImputer(strategy="median")),
     ]
-
     if scale_numerical:
         numeric_steps.append(("scaler", StandardScaler()))
 
     numeric_pipeline = Pipeline(numeric_steps)
-
     categorical_pipeline = Pipeline(
         [
             ("imputer", SimpleImputer(strategy="most_frequent")),
@@ -40,7 +39,7 @@ def build_preprocessor(
                 "one_hot",
                 OneHotEncoder(
                     handle_unknown="ignore",
-                    sparse_output=True,
+                    sparse_output=sparse_output,
                     min_frequency=10,
                 ),
             ),

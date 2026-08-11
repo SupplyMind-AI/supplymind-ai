@@ -2,6 +2,7 @@
 
 from __future__ import annotations
 
+
 # -------------------
 # Dataset contract
 # -------------------
@@ -15,6 +16,13 @@ EARLY_CLASS = 0
 ON_TIME_CLASS = 1
 DELAYED_CLASS = 2
 
+TARGET_COLUMNS = [
+    SOURCE_TARGET_COLUMN,
+    DELIVERY_OUTCOME_COLUMN,
+    TARGET_COLUMN,
+]
+
+
 # -------------------
 # Temporal split
 # -------------------
@@ -24,16 +32,20 @@ VALIDATION_FRACTION = 0.15
 TEST_FRACTION = 0.15
 RANDOM_STATE = 42
 
+
 # -------------------
 # Decision threshold
 # -------------------
 
 DEFAULT_DECISION_THRESHOLD = 0.50
 
+
 # -------------------
-# Source schema
+# Raw SynDelay schema
 # -------------------
 
+# The downloaded SynDelay v1 CSV contains 41 source columns. SupplyMind adds
+# `delivery_outcome` and `is_delayed` during canonicalization.
 SYNDELAY_COLUMNS = [
     "payment_type",
     "profit_per_order",
@@ -78,19 +90,16 @@ SYNDELAY_COLUMNS = [
     "label",
 ]
 
+
 # -------------------
 # Leakage / unsafe columns
 # -------------------
 
-# shipping_date is excluded because SupplyMind scores at order/planning time.
-# order_status is excluded because the source field may represent a later
-# lifecycle state rather than the state known at prediction time.
 POST_PREDICTION_OR_AMBIGUOUS_COLUMNS = [
     "shipping_date",
     "order_status",
 ]
 
-# High-cardinality identifiers are not business features.
 IDENTIFIER_COLUMNS = [
     "customer_id",
     "order_customer_id",
@@ -100,18 +109,18 @@ IDENTIFIER_COLUMNS = [
     "product_card_id",
 ]
 
-# Redundant ID representations where a semantic category/name is retained.
 REDUNDANT_CATEGORY_ID_COLUMNS = [
     "category_id",
     "department_id",
     "product_category_id",
 ]
 
+
 # -------------------
-# Base production features
+# Raw model inputs
 # -------------------
 
-NUMERICAL_FEATURES = [
+BASE_NUMERICAL_FEATURES = [
     "profit_per_order",
     "sales_per_customer",
     "latitude",
@@ -125,17 +134,6 @@ NUMERICAL_FEATURES = [
     "order_item_total_amount",
     "order_profit_per_order",
     "product_price",
-    "order_year",
-    "order_month",
-    "order_quarter",
-    "order_week",
-    "order_day",
-    "order_weekday",
-    "order_hour",
-    "order_is_weekend",
-    "customer_city_frequency",
-    "order_city_frequency",
-    "order_state_frequency",
 ]
 
 CATEGORICAL_FEATURES = [
@@ -152,4 +150,49 @@ CATEGORICAL_FEATURES = [
     "shipping_mode",
 ]
 
+FREQUENCY_SOURCE_FEATURES = [
+    "customer_city",
+    "order_city",
+    "order_state",
+]
+
+
+# -------------------
+# Engineered features
+# -------------------
+
+TEMPORAL_FEATURES = [
+    "order_year",
+    "order_month",
+    "order_quarter",
+    "order_week",
+    "order_day",
+    "order_weekday",
+    "order_hour",
+    "order_is_weekend",
+]
+
+FREQUENCY_FEATURES = [
+    "customer_city_frequency",
+    "order_city_frequency",
+    "order_state_frequency",
+]
+
+NUMERICAL_FEATURES = (
+    BASE_NUMERICAL_FEATURES
+    + TEMPORAL_FEATURES
+    + FREQUENCY_FEATURES
+)
+
 MODEL_FEATURES = NUMERICAL_FEATURES + CATEGORICAL_FEATURES
+
+# Columns supplied to the persisted sklearn pipeline. The first pipeline step
+# creates temporal and frequency features from these raw inputs.
+MODEL_INPUT_FEATURES = list(
+    dict.fromkeys(
+        BASE_NUMERICAL_FEATURES
+        + CATEGORICAL_FEATURES
+        + FREQUENCY_SOURCE_FEATURES
+        + [SPLIT_TIMESTAMP_COLUMN]
+    )
+)

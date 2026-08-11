@@ -1,40 +1,68 @@
 # SupplyMind ML Methodology
 
-## Reference methodology
+## Target
 
-The analysis structure is inspired by the public `Delivery_Risk_Prediction.ipynb`
-project by Polina Burova: business framing, exploratory analysis, feature
-engineering, statistical feature analysis, Logistic Regression, Random Forest,
-XGBoost, feature importance, and model comparison.
+The downloaded SynDelay v1 CSV contains **41 raw columns** and one source target,
+`label`:
 
-SupplyMind does not copy the reference implementation. It adapts the methodology
-to SynDelay and the RFC's production constraints.
+- `0` = early delivery
+- `1` = on-time delivery
+- `2` = delayed delivery
 
-## Important differences
+SupplyMind preserves the source outcome as `delivery_outcome` and creates the V1
+binary target `is_delayed` during canonicalization:
 
-1. **Target** — SynDelay's source label is multiclass. SupplyMind V1 preserves
-   `delivery_outcome` and creates `is_delayed`:
-   - 0 early -> 0 not delayed
-   - 1 on-time -> 0 not delayed
-   - 2 delayed -> 1 delayed
+- source classes `0` and `1` -> `is_delayed = 0`
+- source class `2` -> `is_delayed = 1`
 
-2. **Temporal evaluation** — the reference notebook uses a random train/test
-   split. SupplyMind uses chronological train/validation/test partitions based on
-   `order_date`.
+The raw CSV is never modified. The two additional target columns belong to the
+SupplyMind canonical training dataset.
 
-3. **Leakage policy** — `shipping_date` and `order_status` are excluded from V1
-   model inputs because the model is defined at order/planning time and those
-   fields are post-prediction or temporally ambiguous.
+## Evaluation
 
-4. **High-cardinality variables** — IDs are removed. Selected high-cardinality
-   locations use frequency encoding learned on the training partition only.
+SupplyMind uses a chronological 70/15/15 train/validation/test split based on
+`order_date`. Candidate models are fitted only on the earliest training period,
+compared on the middle validation period, and the selected champion is evaluated
+once on the latest test period.
 
-5. **One-hot encoding** — stable categorical business variables use
-   `OneHotEncoder(handle_unknown="ignore")` inside the persisted sklearn pipeline.
+## Leakage policy
 
-6. **Training-serving consistency** — preprocessing and the estimator are saved
-   together. FastAPI must load the persisted champion pipeline rather than
-   recreating transformations.
+`shipping_date` and `order_status` are excluded from V1 model inputs because the
+model is defined at order/planning time and their prediction-time availability is
+post-event or ambiguous. Target-derived columns and entity identifiers are also
+excluded.
 
-7. **Champion selection** — candidates are compared on validation F1, then recall,
-   then ROC-AUC. The test partition is evaluated once after selection.
+## Feature engineering
+
+Calendar features are derived from `order_date`. High-cardinality geography
+(`customer_city`, `order_city`, `order_state`) is frequency encoded. Crucially,
+those frequency maps are learned on training data and persisted inside the sklearn
+model pipeline so validation, test, retraining, and FastAPI inference reuse the
+same mappings.
+
+## Preprocessing
+
+Stable categorical business variables use
+`OneHotEncoder(handle_unknown="ignore")`. Numerical variables are median-imputed
+and scaled for estimators that benefit from standardization. Feature engineering,
+preprocessing, and the estimator are persisted together as one `joblib` artifact.
+
+## Candidate models
+
+SupplyMind V1 compares:
+
+1. Logistic Regression
+2. Random Forest
+3. XGBoost
+4. HistGradientBoosting (optional in the RFC, included in the implementation)
+
+## Champion selection
+
+Candidates are ranked on validation F1, then delayed-class recall, then ROC-AUC.
+The test set is not used for model choice or threshold tuning. After selection,
+the champion is refitted on train + validation and evaluated once on test data.
+
+## Production boundary
+
+FastAPI must load `models/champion/model.joblib`. Serving code must not recreate
+frequency mappings, one-hot encoders, scalers, or other training transformations.
