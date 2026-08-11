@@ -1,4 +1,4 @@
-"""Validation helpers for training and inference datasets."""
+"""Dataset-contract and data-quality validation."""
 
 from __future__ import annotations
 
@@ -6,14 +6,16 @@ from dataclasses import dataclass
 
 import pandas as pd
 
+from supplymind.features.predictions.domain.constants import (
+    MODEL_FEATURES,
+    SPLIT_TIMESTAMP_COLUMN,
+    TARGET_COLUMN,
+)
 
-# -------------------
-# Validation result
-# Structured result returned by dataset validation.
-# -------------------
 
 @dataclass(frozen=True)
 class ValidationResult:
+    """Result returned by a data validation check."""
 
     is_valid: bool
     errors: list[str]
@@ -21,100 +23,91 @@ class ValidationResult:
 
 
 # -------------------
-# Schema validation
-# Validate that all required columns are present.
+# Required columns
 # -------------------
 
 def validate_required_columns(
     frame: pd.DataFrame,
     required_columns: list[str],
 ) -> ValidationResult:
-    """"""
+    """Validate required-column presence."""
 
     missing = sorted(set(required_columns) - set(frame.columns))
     errors = [f"Missing required column: {column}" for column in missing]
-
-    return ValidationResult(
-        is_valid=not errors,
-        errors=errors,
-        warnings=[],
-    )
+    return ValidationResult(not errors, errors, [])
 
 
 # -------------------
-# Target validation
+# Binary target
 # -------------------
 
-def validate_binary_target(
-    frame: pd.DataFrame,
-    target_column: str,
-) -> ValidationResult:
-    """Validate that a target contains only binary values and no nulls."""
+def validate_binary_target(frame: pd.DataFrame) -> ValidationResult:
+    """Validate the V1 target domain and class presence."""
 
+    if TARGET_COLUMN not in frame:
+        return ValidationResult(
+            False,
+            [f"Missing target column: {TARGET_COLUMN}"],
+            [],
+        )
+
+    target = frame[TARGET_COLUMN]
     errors: list[str] = []
     warnings: list[str] = []
 
-    if target_column not in frame.columns:
-        return ValidationResult(
-            is_valid=False,
-            errors=[f"Target column not found: {target_column}"],
-            warnings=[],
-        )
+    if target.isna().any():
+        errors.append("Binary target contains missing values.")
 
-    if frame[target_column].isna().any():
-        errors.append(f"Target '{target_column}' contains missing values.")
-
-    values = set(frame[target_column].dropna().unique().tolist())
+    values = set(target.dropna().unique())
     if not values.issubset({0, 1, False, True}):
-        errors.append(
-            f"Target '{target_column}' must be binary; found values: {sorted(values)}"
-        )
+        errors.append(f"Binary target has unexpected values: {sorted(values)}")
 
-    positive_rate = float(frame[target_column].mean())
-    if positive_rate < 0.05 or positive_rate > 0.95:
-        warnings.append(
-            f"Target is strongly imbalanced; positive rate={positive_rate:.3f}."
-        )
+    if target.nunique(dropna=True) < 2:
+        errors.append("Binary target contains fewer than two classes.")
 
-    return ValidationResult(
-        is_valid=not errors,
-        errors=errors,
-        warnings=warnings,
-    )
+    rate = float(target.mean())
+    if rate < 0.10 or rate > 0.90:
+        warnings.append(f"Strong class imbalance detected: positive_rate={rate:.3f}")
+
+    return ValidationResult(not errors, errors, warnings)
 
 
 # -------------------
-# Temporal validation
+# Temporal column
 # -------------------
 
-def validate_timestamp_column(
-    frame: pd.DataFrame,
-    timestamp_column: str,
-) -> ValidationResult:
-    """Validate that a timestamp column can be parsed and is not fully missing."""
+def validate_split_timestamp(frame: pd.DataFrame) -> ValidationResult:
+    """Validate the chronological split timestamp."""
 
-    if timestamp_column not in frame.columns:
+    if SPLIT_TIMESTAMP_COLUMN not in frame:
         return ValidationResult(
-            is_valid=False,
-            errors=[f"Timestamp column not found: {timestamp_column}"],
-            warnings=[],
+            False,
+            [f"Missing split timestamp: {SPLIT_TIMESTAMP_COLUMN}"],
+            [],
         )
 
-    parsed = pd.to_datetime(frame[timestamp_column], errors="coerce")
-    invalid_count = int(parsed.isna().sum())
-
-    errors: list[str] = []
-    warnings: list[str] = []
-
-    if invalid_count == len(frame):
-        errors.append(f"Timestamp '{timestamp_column}' could not be parsed.")
-    elif invalid_count > 0:
-        warnings.append(
-            f"Timestamp '{timestamp_column}' has {invalid_count} unparseable values."
-        )
-
-    return ValidationResult(
-        is_valid=not errors,
-        errors=errors,
-        warnings=warnings,
+    parsed = pd.to_datetime(
+        frame[SPLIT_TIMESTAMP_COLUMN],
+        errors="coerce",
     )
+
+    invalid = int(parsed.isna().sum())
+    errors = []
+    warnings = []
+
+    if invalid == len(frame):
+        errors.append("Split timestamp is completely invalid.")
+    elif invalid:
+        warnings.append(f"{invalid} rows have invalid split timestamps.")
+
+    return ValidationResult(not errors, errors, warnings)
+
+
+# -------------------
+# Production feature contract
+# -------------------
+
+def validate_model_features(frame: pd.DataFrame) -> ValidationResult:
+    """Validate that engineered model features are present."""
+
+    return validate_required_columns(frame, MODEL_FEATURES)

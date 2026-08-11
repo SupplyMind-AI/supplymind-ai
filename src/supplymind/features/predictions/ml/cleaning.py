@@ -1,4 +1,4 @@
-"""Deterministic cleaning operations for shipment data."""
+"""Deterministic cleaning rules shared by training and inference."""
 
 from __future__ import annotations
 
@@ -6,30 +6,38 @@ import pandas as pd
 
 
 # -------------------
-# Data cleaning
+# String normalization
 # -------------------
 
-def clean_shipment_data(frame: pd.DataFrame) -> pd.DataFrame:
-    """Apply deterministic, non-learned cleaning rules.
+def normalize_strings(frame: pd.DataFrame) -> pd.DataFrame:
+    """Strip whitespace from categorical values without changing semantics."""
 
-    This function must remain safe for training, validation, test,
-    monitoring, retraining, and inference datasets.
-    """
+    result = frame.copy()
+    columns = result.select_dtypes(include=["object", "string"]).columns
 
-    cleaned = frame.copy()
+    for column in columns:
+        result[column] = result[column].astype("string").str.strip()
 
-    # -------------------
-    # Remove exact duplicates
-    # -------------------
+    return result
 
-    cleaned = cleaned.drop_duplicates().reset_index(drop=True)
 
-    # -------------------
-    # Normalize string values
-    # -------------------
+# -------------------
+# Duplicate handling
+# -------------------
 
-    string_columns = cleaned.select_dtypes(include=["object", "string"]).columns
-    for column in string_columns:
-        cleaned[column] = cleaned[column].astype("string").str.strip()
+def remove_exact_duplicates(frame: pd.DataFrame) -> pd.DataFrame:
+    """Remove exact duplicate rows and reset the index."""
 
+    return frame.drop_duplicates().reset_index(drop=True)
+
+
+# -------------------
+# Cleaning pipeline
+# -------------------
+
+def clean_syndelay(frame: pd.DataFrame) -> pd.DataFrame:
+    """Apply only deterministic and production-safe cleaning."""
+
+    cleaned = normalize_strings(frame)
+    cleaned = remove_exact_duplicates(cleaned)
     return cleaned

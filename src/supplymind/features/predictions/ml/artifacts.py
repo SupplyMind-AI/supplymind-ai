@@ -1,4 +1,4 @@
-"""Model artifact persistence and loading."""
+"""Versioned model artifact persistence."""
 
 from __future__ import annotations
 
@@ -10,42 +10,39 @@ import joblib
 
 
 # -------------------
-# Artifact persistence
-# Save a fitted pipeline and its metadata atomically enough for V1.
+# Save artifact
 # -------------------
 
 def save_model_artifact(
     model: Any,
-    metadata: dict[str, Any],
-    artifact_directory: str | Path,
+    metadata: dict,
+    directory: str | Path,
 ) -> None:
-    """"""
+    """Persist preprocessing + estimator together with metadata."""
 
-    directory = Path(artifact_directory)
-    directory.mkdir(parents=True, exist_ok=True)
+    artifact_directory = Path(directory)
+    artifact_directory.mkdir(parents=True, exist_ok=True)
 
-    model_path = directory / "model.joblib"
-    metadata_path = directory / "metadata.json"
-
-    joblib.dump(model, model_path)
-    metadata_path.write_text(
+    joblib.dump(model, artifact_directory / "model.joblib")
+    (artifact_directory / "metadata.json").write_text(
         json.dumps(metadata, indent=2, default=str),
         encoding="utf-8",
     )
 
 
 # -------------------
-# Artifact loading
+# Load artifact
 # -------------------
 
 def load_model_artifact(
-    artifact_directory: str | Path,
-) -> tuple[Any, dict[str, Any]]:
-    """Load a model pipeline and its metadata."""
+    directory: str | Path,
+) -> tuple[Any, dict]:
+    """Load a persisted model pipeline and metadata."""
 
-    directory = Path(artifact_directory)
-    model = joblib.load(directory / "model.joblib")
+    artifact_directory = Path(directory)
+
+    model = joblib.load(artifact_directory / "model.joblib")
     metadata = json.loads(
-        (directory / "metadata.json").read_text(encoding="utf-8")
+        (artifact_directory / "metadata.json").read_text(encoding="utf-8")
     )
     return model, metadata

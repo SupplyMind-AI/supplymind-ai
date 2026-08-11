@@ -1,59 +1,133 @@
-"""Feature engineering for shipment-delay prediction."""
+"""Production feature engineering for shipment-delay prediction."""
 
 from __future__ import annotations
 
 import pandas as pd
 
+from supplymind.features.predictions.domain.constants import (
+    CATEGORICAL_FEATURES,
+    IDENTIFIER_COLUMNS,
+    MODEL_FEATURES,
+    NUMERICAL_FEATURES,
+    POST_PREDICTION_OR_AMBIGUOUS_COLUMNS,
+    REDUNDANT_CATEGORY_ID_COLUMNS,
+)
+
 
 # -------------------
-# Datetime features
+# Order-date features
 # -------------------
 
-def add_datetime_features(
+def add_order_date_features(frame: pd.DataFrame) -> pd.DataFrame:
+    """Create calendar features known at order/planning time."""
+
+    result = frame.copy()
+    order_date = pd.to_datetime(result["order_date"], errors="coerce")
+
+    result["order_year"] = order_date.dt.year.astype("Int16")
+    result["order_month"] = order_date.dt.month.astype("Int8")
+    result["order_quarter"] = order_date.dt.quarter.astype("Int8")
+    result["order_week"] = order_date.dt.isocalendar().week.astype("Int16")
+    result["order_day"] = order_date.dt.day.astype("Int8")
+    result["order_weekday"] = order_date.dt.weekday.astype("Int8")
+    result["order_hour"] = order_date.dt.hour.astype("Int8")
+    result["order_is_weekend"] = (
+        order_date.dt.weekday.ge(5).astype("int8")
+    )
+
+    return result
+
+
+# -------------------
+# Frequency encoding
+# -------------------
+
+def add_frequency_features(
     frame: pd.DataFrame,
-    timestamp_columns: list[str],
+    *,
+    reference: pd.DataFrame | None = None,
 ) -> pd.DataFrame:
-    """Extract stable calendar features from configured timestamps."""
+    """Frequency-encode selected high-cardinality geography fields.
 
-    featured = frame.copy()
+    Frequency encoding avoids thousands of one-hot columns and does not use
+    the target, so it is safer than target encoding.
 
-    for column in timestamp_columns:
-        if column not in featured.columns:
-            continue
+    During validation/test/inference, pass the training frame as `reference`
+    so frequencies are learned only from training data.
+    """
 
-        values = pd.to_datetime(featured[column], errors="coerce")
-        featured[f"{column}_year"] = values.dt.year
-        featured[f"{column}_month"] = values.dt.month
-        featured[f"{column}_weekday"] = values.dt.weekday
-        featured[f"{column}_hour"] = values.dt.hour
+    result = frame.copy()
+    reference_frame = frame if reference is None else reference
 
+    for column in ["customer_city", "order_city", "order_state"]:
+        frequencies = reference_frame[column].value_counts(normalize=True)
+        result[f"{column}_frequency"] = (
+            result[column].map(frequencies).fillna(0.0).astype("float32")
+        )
+
+    return result
+
+
+# -------------------
+# Leakage removal
+# -------------------
+
+def columns_excluded_from_model() -> list[str]:
+    """Return columns deliberately excluded from model inputs."""
+
+    return sorted(
+        set(
+            IDENTIFIER_COLUMNS
+            + REDUNDANT_CATEGORY_ID_COLUMNS
+            + POST_PREDICTION_OR_AMBIGUOUS_COLUMNS
+            + [
+                "label",
+                "delivery_outcome",
+                "is_delayed",
+                "customer_zipcode",
+                "customer_city",
+                "order_city",
+                "order_state",
+                "order_date",
+            ]
+        )
+    )
+
+
+# -------------------
+# Feature engineering
+# -------------------
+
+def engineer_features(
+    frame: pd.DataFrame,
+    *,
+    frequency_reference: pd.DataFrame | None = None,
+) -> pd.DataFrame:
+    """Create all V1 deterministic model features."""
+
+    featured = add_order_date_features(frame)
+    featured = add_frequency_features(
+        featured,
+        reference=frequency_reference,
+    )
     return featured
 
 
 # -------------------
-# Lead-time features
+# Feature matrix
 # -------------------
 
-def add_planned_lead_time(
-    frame: pd.DataFrame,
-    departure_column: str,
-    delivery_column: str,
-    output_column: str = "planned_lead_time_days",
-) -> pd.DataFrame:
-    """Calculate planned lead time using information available before delivery."""
+def build_feature_matrix(frame: pd.DataFrame) -> pd.DataFrame:
+    """Return model inputs in an explicit, deterministic column order."""
 
-    featured = frame.copy()
+    missing = [column for column in MODEL_FEATURES if column not in frame]
+    if missing:
+        raise KeyError(f"Missing engineered model features: {missing}")
 
-    if departure_column not in featured.columns:
-        return featured
-    if delivery_column not in featured.columns:
-        return featured
+    return frame[MODEL_FEATURES].copy()
 
-    departure = pd.to_datetime(featured[departure_column], errors="coerce")
-    delivery = pd.to_datetime(featured[delivery_column], errors="coerce")
 
-    featured[output_column] = (
-        delivery - departure
-    ).dt.total_seconds() / 86_400
+def feature_groups() -> tuple[list[str], list[str]]:
+    """Return the stable numerical and categorical feature groups."""
 
-    return featured
+    return list(NUMERICAL_FEATURES), list(CATEGORICAL_FEATURES)

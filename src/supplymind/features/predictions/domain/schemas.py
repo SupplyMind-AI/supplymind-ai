@@ -1,4 +1,4 @@
-"""Domain schemas for shipment-delay prediction."""
+"""Typed prediction-domain schemas."""
 
 from __future__ import annotations
 
@@ -9,58 +9,53 @@ from pydantic import BaseModel, ConfigDict, Field
 
 
 # -------------------
-# Canonical shipment input
-# This schema is used for validation, feature engineering, training, and inference.
-# This schema intentionally contains only stable, business-level fields.
-# Source-specific datasets such as SynDelay must be mapped into this schema
-# before validation, feature engineering, training, or inference.
+# Prediction input
 # -------------------
 
-class ShipmentRecord(BaseModel):
+class ShipmentFeatures(BaseModel):
+    """Canonical feature payload accepted by the prediction service.
 
-    model_config = ConfigDict(extra="allow")
+    The API layer may expose a richer shipment schema later; this object
+    represents only the data required by the persisted ML pipeline.
+    """
 
-    shipment_id: str
+    model_config = ConfigDict(extra="forbid")
+
+    shipment_id: str | None = None
     prediction_at: datetime | None = None
-    origin_country: str | None = None
-    destination_country: str | None = None
-    planned_departure_at: datetime | None = None
-    planned_delivery_at: datetime | None = None
-    carrier: str | None = None
-    transport_mode: str | None = None
-    planned_lead_time_days: float | None = None
-    weather_severity: float | None = Field(default=None, ge=0.0)
-    is_delayed: int | None = Field(default=None, ge=0, le=1)
+    values: dict[str, Any]
 
 
 # -------------------
-# Prediction response
-# Prediction result returned by the champion model.
+# Prediction output
 # -------------------
 
 class DelayPrediction(BaseModel):
+    """Binary delay prediction returned by the champion pipeline."""
 
-    shipment_id: str
+    shipment_id: str | None = None
     delayed: bool
     delay_probability: float = Field(ge=0.0, le=1.0)
+    threshold: float = Field(ge=0.0, le=1.0)
     risk_level: str
+    model_name: str
     model_version: str
-    risk_drivers: list[dict[str, Any]] = Field(default_factory=list)
 
 
 # -------------------
 # Model metadata
-# Metadata stored alongside the champion model artifact.
 # -------------------
 
 class ModelMetadata(BaseModel):
+    """Metadata persisted with a trained candidate or champion model."""
 
     model_name: str
     model_version: str
     trained_at: datetime
+    source_dataset: str
     target_column: str
+    split_timestamp_column: str
     feature_columns: list[str]
-    metrics: dict[str, float]
-    decision_threshold: float
-    dataset_name: str
-    dataset_version: str | None = None
+    threshold: float
+    validation_metrics: dict[str, float]
+    test_metrics: dict[str, float] | None = None

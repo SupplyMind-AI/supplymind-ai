@@ -1,10 +1,19 @@
-"""Dataset loading and source-to-canonical mapping helpers."""
+"""Dataset loading and SynDelay-to-SupplyMind canonicalization."""
 
 from __future__ import annotations
 
 from pathlib import Path
 
+import numpy as np
 import pandas as pd
+
+from supplymind.features.predictions.domain.constants import (
+    DELAYED_CLASS,
+    DELIVERY_OUTCOME_COLUMN,
+    SOURCE_TARGET_COLUMN,
+    SYNDELAY_COLUMNS,
+    TARGET_COLUMN,
+)
 
 
 # -------------------
@@ -12,6 +21,7 @@ import pandas as pd
 # -------------------
 
 def load_tabular_dataset(path: str | Path) -> pd.DataFrame:
+    """Load a local CSV or Parquet file without mutating its contents."""
 
     dataset_path = Path(path)
     if not dataset_path.exists():
@@ -24,16 +34,16 @@ def load_tabular_dataset(path: str | Path) -> pd.DataFrame:
         return pd.read_parquet(dataset_path)
 
     raise ValueError(
-        f"Unsupported dataset format '{suffix}'. Use CSV or Parquet."
+        f"Unsupported dataset format '{suffix}'. Expected CSV or Parquet."
     )
 
 
 # -------------------
 # Column normalization
-# Return a copy with normalized snake_case column names.
 # -------------------
 
 def normalize_column_names(frame: pd.DataFrame) -> pd.DataFrame:
+    """Return a copy with deterministic snake_case column names."""
 
     normalized = frame.copy()
     normalized.columns = (
@@ -47,20 +57,77 @@ def normalize_column_names(frame: pd.DataFrame) -> pd.DataFrame:
 
 
 # -------------------
-# Source adapter placeholder
-# Map SynDelay columns into the SupplyMind canonical schema.
+# Excel date conversion
 # -------------------
 
-def map_syndelay_to_canonical(frame: pd.DataFrame) -> pd.DataFrame:
+def excel_serial_to_datetime(series: pd.Series) -> pd.Series:
+    """Convert Excel serial dates to pandas timestamps.
 
-    normalized = normalize_column_names(frame)
+    SynDelay stores `order_date` and `shipping_date` as Excel serial-day
+    numbers. Fractional values represent the time of day.
+    """
 
-    column_mapping: dict[str, str] = {
-        # Example only — replace after inspecting the downloaded dataset:
-        # "shipment_identifier": "shipment_id",
-        # "planned_delivery_timestamp": "planned_delivery_at",
-        # "delivery_status": "is_delayed",
-    }
+    numeric = pd.to_numeric(series, errors="coerce")
+    return pd.to_datetime(
+        numeric,
+        unit="D",
+        origin="1899-12-30",
+        errors="coerce",
+    )
 
-    canonical = normalized.rename(columns=column_mapping)
+
+# -------------------
+# Binary target mapping
+# -------------------
+
+def add_binary_delay_target(frame: pd.DataFrame) -> pd.DataFrame:
+    """Preserve the source label and create SupplyMind's V1 binary target.
+
+    SynDelay:
+        0 = early
+        1 = on-time
+        2 = delayed
+
+    SupplyMind V1:
+        0 = not delayed (source classes 0 and 1)
+        1 = delayed (source class 2)
+    """
+
+    if SOURCE_TARGET_COLUMN not in frame.columns:
+        raise KeyError(f"Missing source target '{SOURCE_TARGET_COLUMN}'.")
+
+    result = frame.copy()
+    source = pd.to_numeric(result[SOURCE_TARGET_COLUMN], errors="raise")
+
+    unexpected = sorted(set(source.unique()) - {0, 1, 2})
+    if unexpected:
+        raise ValueError(f"Unexpected SynDelay labels: {unexpected}")
+
+    result[DELIVERY_OUTCOME_COLUMN] = source.astype("int8")
+    result[TARGET_COLUMN] = (source == DELAYED_CLASS).astype("int8")
+    return result
+
+
+# -------------------
+# SynDelay canonicalization
+# -------------------
+
+def canonicalize_syndelay(frame: pd.DataFrame) -> pd.DataFrame:
+    """Normalize SynDelay into the stable SupplyMind training contract."""
+
+    canonical = normalize_column_names(frame)
+
+    missing = sorted(set(SYNDELAY_COLUMNS) - set(canonical.columns))
+    if missing:
+        raise ValueError(
+            "SynDelay schema does not match the expected V1 contract. "
+            f"Missing columns: {missing}"
+        )
+
+    canonical = canonical[SYNDELAY_COLUMNS].copy()
+    canonical["order_date"] = excel_serial_to_datetime(canonical["order_date"])
+    canonical["shipping_date"] = excel_serial_to_datetime(
+        canonical["shipping_date"]
+    )
+    canonical = add_binary_delay_target(canonical)
     return canonical
