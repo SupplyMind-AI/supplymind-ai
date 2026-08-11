@@ -9,6 +9,5 @@
   "false_positive": 9581,
   "false_negative": 156,
   "true_positive": 13306,
-  "threshold": 0.3000000000000001,
-  "training_seconds": 248.23587668599794
+  "threshold": 0.3000000000000001
 }
