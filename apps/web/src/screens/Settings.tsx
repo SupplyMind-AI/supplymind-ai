@@ -1,0 +1,1 @@
+import {useEffect,useState} from "react";import {api} from "../api";import {Header,Card} from "../components";export default function Settings(){const[d,setD]=useState<any>(null);useEffect(()=>{api("/settings").then(setD)},[]);return <><Header title="Settings" subtitle="Read-only non-secret runtime configuration."/><Card><pre>{JSON.stringify(d,null,2)}</pre></Card></>}

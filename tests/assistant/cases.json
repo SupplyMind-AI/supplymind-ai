@@ -1,0 +1,20 @@
+[
+  {
+    "query": "Why is this shipment at risk?",
+    "shipment_external_id": "ORDER-100",
+    "expected_route": "combined"
+  },
+  {
+    "query": "Is severe weather expected?",
+    "location": "Berlin",
+    "expected_route": "weather"
+  },
+  {
+    "query": "Any port disruptions?",
+    "expected_route": "events"
+  },
+  {
+    "query": "What does our shipping policy say?",
+    "expected_route": "knowledge"
+  }
+]
