@@ -1,28 +1,20 @@
 """Shipment repository ports."""
-
 from __future__ import annotations
-
 from abc import ABC, abstractmethod
 from uuid import UUID
-
 from supplymind.features.shipments.domain.entities import Shipment
 
-
 class ShipmentRepository(ABC):
-    """Persistence contract used by shipment application services."""
+    @abstractmethod
+    async def add(self, shipment: Shipment) -> Shipment: ...
+
+    async def update(self, shipment: Shipment) -> Shipment:
+        """Optional update hook; legacy/test repositories may remain create-only."""
+        raise NotImplementedError
 
     @abstractmethod
-    async def add(self, shipment: Shipment) -> Shipment:
-        """Persist a shipment."""
-
+    async def get(self, shipment_id: UUID) -> Shipment | None: ...
     @abstractmethod
-    async def get(self, shipment_id: UUID) -> Shipment | None:
-        """Find a shipment by internal ID."""
-
+    async def get_by_external_id(self, external_id: str) -> Shipment | None: ...
     @abstractmethod
-    async def get_by_external_id(self, external_id: str) -> Shipment | None:
-        """Find a shipment by external business ID."""
-
-    @abstractmethod
-    async def list_recent(self, *, limit: int = 100, offset: int = 0) -> list[Shipment]:
-        """Return recent shipments."""
+    async def list_recent(self, *, limit: int = 100, offset: int = 0) -> list[Shipment]: ...
