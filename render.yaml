@@ -10,7 +10,7 @@ services:
     envVars:
       - key: APP_ENV
         value: production
-      - key: DATABASE_URL
+      - key: postgresql://supplymind:lGEce9GLogx8466dDqgSy9NFF6itZmat@dpg-d9uo9efavr4c73b2uq30-a.frankfurt-postgres.render.com/supplymind_0vfa
         fromDatabase:
           name: supplymind-postgres
           property: connectionString
@@ -46,6 +46,10 @@ services:
         value: models
       - key: CORS_ORIGINS
         sync: false
+      - key: PYTHON_VERSION
+        value: "3.11.15"
+      - key: PYTHON_VERSION
+        value: "3.11.15"
 
 databases:
   - name: supplymind-postgres
