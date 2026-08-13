@@ -9,6 +9,7 @@ import pandas as pd
 from sklearn.metrics import (
     accuracy_score,
     average_precision_score,
+    balanced_accuracy_score,
     confusion_matrix,
     f1_score,
     precision_score,
@@ -27,6 +28,8 @@ class BinaryMetrics:
     f1: float
     roc_auc: float
     average_precision: float
+    balanced_accuracy: float
+    specificity: float
     true_negative: int
     false_positive: int
     false_negative: int
@@ -48,12 +51,9 @@ def positive_class_probability(model, X) -> np.ndarray:
 
     if not hasattr(model, "predict_proba"):
         raise TypeError("Classifier must implement predict_proba().")
+
     return model.predict_proba(X)[:, 1]
 
-
-# -------------------
-# Metrics
-# -------------------
 
 # -------------------
 # Metrics
@@ -67,15 +67,10 @@ def evaluate_probabilities(
 ) -> BinaryMetrics:
     """Evaluate binary predictions at a fixed probability threshold."""
 
-    probabilities = np.asarray(probabilities)
+    y_true = np.asarray(y_true, dtype=int)
+    probabilities = np.asarray(probabilities, dtype=float)
 
-    predictions = (
-        probabilities >= threshold
-    ).astype(int)
-
-    # -------------------
-    # Confusion matrix
-    # -------------------
+    predictions = (probabilities >= threshold).astype(int)
 
     tn, fp, fn, tp = confusion_matrix(
         y_true,
@@ -83,9 +78,11 @@ def evaluate_probabilities(
         labels=[0, 1],
     ).ravel()
 
-    # -------------------
-    # Error rates
-    # -------------------
+    specificity = (
+        tn / (tn + fp)
+        if (tn + fp) > 0
+        else 0.0
+    )
 
     false_positive_rate = (
         fp / (fp + tn)
@@ -98,10 +95,6 @@ def evaluate_probabilities(
         if (fn + tp) > 0
         else 0.0
     )
-
-    # -------------------
-    # Evaluation result
-    # -------------------
 
     return BinaryMetrics(
         accuracy=float(
@@ -143,6 +136,15 @@ def evaluate_probabilities(
                 probabilities,
             )
         ),
+        balanced_accuracy=float(
+            balanced_accuracy_score(
+                y_true,
+                predictions,
+            )
+        ),
+        specificity=float(
+            specificity
+        ),
         true_negative=int(tn),
         false_positive=int(fp),
         false_negative=int(fn),
@@ -156,21 +158,6 @@ def evaluate_probabilities(
         threshold=float(threshold),
     )
 
-    # -------------------
-    # Error rates
-    # -------------------
-
-    false_positive_rate = (
-        fp / (fp + tn)
-        if (fp + tn) > 0
-        else 0.0
-    )
-
-    false_negative_rate = (
-        fn / (fn + tp)
-        if (fn + tp) > 0
-        else 0.0
-    )
 
 # -------------------
 # Threshold optimization
@@ -180,16 +167,27 @@ def choose_threshold(
     y_true,
     probabilities,
     *,
-    min_recall: float | None = None,
+    min_precision: float = 0.65,
+    min_recall: float = 0.70,
 ) -> tuple[float, pd.DataFrame]:
-    """Choose the validation threshold that maximizes F1.
+    """Choose an operationally useful validation threshold.
 
-    If `min_recall` is supplied, only thresholds meeting the recall floor are
-    eligible. This supports the SupplyMind business priority of avoiding
-    missed delays.
+    Threshold selection policy:
+
+    1. Evaluate thresholds from 0.20 to 0.80.
+    2. Prefer thresholds satisfying both:
+       - precision >= min_precision
+       - recall >= min_recall
+    3. Among eligible thresholds, maximize balanced accuracy.
+    4. Break ties using F1, then recall.
+    5. If no threshold satisfies the business constraints,
+       fall back to the threshold with the highest balanced accuracy.
+
+    This prevents a model from winning simply by predicting nearly every
+    shipment as delayed.
     """
 
-    rows = []
+    rows: list[dict[str, float | int]] = []
 
     for threshold in np.arange(0.20, 0.81, 0.01):
         metrics = evaluate_probabilities(
@@ -201,15 +199,25 @@ def choose_threshold(
 
     table = pd.DataFrame(rows)
 
-    eligible = table
-    if min_recall is not None:
-        recall_filtered = table[table["recall"] >= min_recall]
-        if not recall_filtered.empty:
-            eligible = recall_filtered
+    eligible = table[
+        (table["precision"] >= min_precision)
+        & (table["recall"] >= min_recall)
+    ]
+
+    if eligible.empty:
+        eligible = table
 
     winner = eligible.sort_values(
-        ["f1", "recall", "precision"],
-        ascending=[False, False, False],
+        [
+            "balanced_accuracy",
+            "f1",
+            "recall",
+        ],
+        ascending=[
+            False,
+            False,
+            False,
+        ],
     ).iloc[0]
 
     return float(winner["threshold"]), table
