@@ -5,7 +5,7 @@ from __future__ import annotations
 from collections.abc import AsyncIterator
 from functools import lru_cache
 
-from fastapi import Depends
+from fastapi import Depends, HTTPException
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from supplymind.features.events.infrastructure.repositories import (
@@ -46,9 +46,12 @@ from supplymind.shared.infrastructure.database.session import AsyncSessionFactor
 async def get_session() -> AsyncIterator[AsyncSession]:
     """One transaction-scoped SQLAlchemy session per request."""
 
-    async with AsyncSessionFactory() as session:
-        async with session.begin():
-            yield session
+    try:
+        async with AsyncSessionFactory() as session:
+            async with session.begin():
+                yield session
+    except Exception as exc:  # pragma: no cover - infrastructure error
+        raise HTTPException(status_code=503, detail="Database unavailable") from exc
 
 
 def get_settings_dependency() -> Settings:

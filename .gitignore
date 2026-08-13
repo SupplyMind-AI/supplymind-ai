@@ -29,9 +29,11 @@ data/processed/*
 !data/sample/**
 !data/documents/**
 
-# Models
 models/*
 !models/.gitkeep
+!models/champion/
+models/champion/*
+!models/champion/metadata.json
 
 # Frontend
 node_modules/

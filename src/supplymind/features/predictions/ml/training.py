@@ -25,11 +25,14 @@ def build_logistic_regression(*, random_state: int = 42):
 
 
 def build_random_forest(*, random_state: int = 42):
-    """Nonlinear bagging ensemble candidate."""
+    """Compact nonlinear bagging ensemble candidate."""
 
     return RandomForestClassifier(
-        n_estimators=300,
-        min_samples_leaf=2,
+        n_estimators=150,
+        max_depth=14,
+        min_samples_leaf=5,
+        min_samples_split=10,
+        max_features="sqrt",
         class_weight="balanced",
         random_state=random_state,
         n_jobs=-1,
