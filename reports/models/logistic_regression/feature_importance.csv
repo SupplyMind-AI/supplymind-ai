@@ -1,0 +1,428 @@
+feature,importance
+shipping_mode_First Class,5.616787338147842
+shipping_mode_Standard Class,2.387098451860733
+shipping_mode_Same Day,1.9928014310591613
+shipping_mode_Second Class,0.6432534927209336
+product_name_The North Face Women's Recon Backpack,0.6219912745679732
+customer_state_AL,0.5743045548670568
+order_country_Ghana,0.555639662858013
+product_name_Cleveland Golf Collegiate My Custom Wedge 588,0.52565771124243
+product_name_ENO Atlas Hammock Straps,0.49825235716407085
+order_country_United Arab Emirates,0.4904508400360844
+order_country_Qatar,0.471737238934291
+order_country_Taiwan,0.434694011960713
+order_country_Botswana,0.4318658931021095
+order_country_Papua New Guinea,0.4295802742581599
+product_name_Hirzl Women's Soffft Flex Golf Glove,0.419952752003337
+order_country_Estonia,0.4169333736169708
+order_country_Barbados,0.40735682729800604
+order_country_Czech Republic,0.39962938047431046
+customer_country_EE. UU.,0.38811043833392844
+order_country_Hungary,0.3790928043413513
+product_name_Mio ALPHA Heart Rate Monitor/Sport Watch,0.375139536365886
+order_country_Syria,0.3656655046570753
+order_country_Turkmenistan,0.3627628483279423
+order_country_Lithuania,0.35594949230757966
+customer_state_95758,0.3534845534674513
+product_name_Garmin Approach S4 Golf GPS Watch,0.35320500594508064
+product_name_SOLE E35 Elliptical,0.3487307386875543
+order_country_Sudan,0.34650933357173114
+product_name_LIJA Women's Mid-Length Panel Golf Shorts,0.34000022731478186
+product_name_Yakima DoubleDown Ace Hitch Mount 4-Bike Rack,0.33400260861441045
+order_country_Mongolia,0.3240845464613672
+product_name_adidas Kids' F5 Messi FG Soccer Cleat,0.31563871814457317
+order_country_Belarus,0.30555253015017
+customer_state_OK,0.30510257103110533
+order_country_Georgia,0.29751550390869425
+order_country_Mauritania,0.2919606136516248
+product_name_LIJA Women's Eyelet Sleeveless Golf Polo,0.290662075028545
+product_name_Glove It Women's Imperial Golf Glove,0.28703296976855003
+product_name_Stiga Master Series ST3100 Competition Indoor,0.27920782242165876
+product_name_Columbia Men's PFG Anchor Tough T-Shirt,0.27879824446920287
+order_country_Ethiopia,0.27384215613187507
+order_country_Switzerland,0.2723239001607519
+order_country_Cyprus,0.27231462650247856
+order_country_Suriname,0.2712273720256099
+order_country_Tunisia,0.26592125841892494
+order_country_Uzbekistan,0.2613498001633274
+product_name_Under Armour Kids' Mercenary Slide,0.2605583207836428
+order_country_Camboya,0.2591853060170095
+order_country_Malasia,0.2538681629428593
+product_name_Titleist Pro V1x High Numbers Golf Balls,0.24996490044009392
+order_country_Sierra Leone,0.2480584271104302
+customer_state_MN,0.24389335741701898
+order_country_Hong Kong,0.2423798578631965
+order_country_Rwanda,0.23588664579772572
+order_country_Bulgaria,0.23328738791812467
+product_name_Titleist Pro V1x High Numbers Personalized Go,0.23209205627947485
+order_country_Lebanon,0.2318052204318011
+order_country_South Africa,0.23033067917736327
+product_name_Garmin Approach S3 Golf GPS Watch,0.22979840550938088
+customer_state_WA,0.22970298178649567
+product_name_Bridgestone e6 Straight Distance NFL Tennesse,0.22262630820084073
+category_name_Hunting & Shooting,0.22185421699224994
+order_country_Eritrea,0.22050378907737114
+order_country_Trinidad and Tobago,0.22033797767150654
+product_name_Nike Men's Fingertrap Max Training Shoe,0.2201914687186924
+product_name_adidas Youth Germany Black/Red Away Match Soc,0.2197847103131081
+order_country_Moldova,0.21280469366196184
+order_country_Guyana,0.2109733799120342
+category_name_Women's Golf Clubs,0.20784541198585216
+product_name_adidas Men's F10 Messi TRX FG Soccer Cleat,0.2062923015994846
+product_name_Brooks Women's Ghost 6 Running Shoe,0.20615346200488133
+customer_country_Puerto Rico,0.20552352416968037
+customer_state_PR,0.20552352416968037
+product_name_Bridgestone e6 Straight Distance NFL San Dieg,0.204953954814169
+order_country_Israel,0.20443402285386836
+customer_segment_Consumer,0.20145152113890955
+customer_segment_Corporate,0.20093820917287605
+order_country_Sweden,0.19946297143298758
+order_country_Kenya,0.1978118650049462
+product_name_Nike Dri-FIT Crew Sock 6 Pack,0.19516929525294863
+order_country_Japan,0.19341230808759424
+product_name_Team Golf San Francisco Giants Putter Grip,0.1918235878406986
+customer_segment_Home Office,0.1912442321918728
+product_name_Team Golf Texas Longhorns Putter Grip,0.19075628261314517
+category_name_Baby,0.18992827889090788
+product_name_Baby sweater,0.18992827889090788
+product_name_Bowflex SelectTech 1090 Dumbbells,0.18936360792689394
+order_country_Ireland,0.18826239703324382
+order_country_Niger,0.1863333242098918
+customer_state_RI,0.18593084543061547
+product_name_Glove It Imperial Golf Towel,0.18415900424679013
+category_name_Lacrosse,0.18220986270526196
+product_name_MDGolf Pittsburgh Penguins Putter,0.1807161226231398
+product_name_infrequent_sklearn,0.1780602629617863
+order_country_Croacia,0.17641241232707064
+order_country_Australia,0.17621878819815323
+product_name_Under Armour Girls' Toddler Spine Surge Runni,0.17569581999594822
+product_name_Bag Boy Beverage Holder,0.1740957053017552
+order_country_Tajikistan,0.17393664988910387
+order_country_Guinea,0.17318511460949673
+category_name_Sporting Goods,0.1712418795573327
+product_name_Smart watch,0.1712418795573327
+order_country_Guinea-Bissau,0.17007606678761827
+payment_type_PAYMENT,0.1695518908375391
+order_country_Poland,0.16863279285905383
+product_name_Bushnell Pro X7 Jolt Slope Rangefinder,0.16861868571413882
+product_name_adidas Brazuca 2014 Official Match Ball,0.16809463969245314
+order_country_Uganda,0.16803564055357065
+category_name_Shop By Sport,0.16696126050069932
+product_name_Hirzl Women's Hybrid Golf Glove,0.16387102887277682
+order_region_West Africa,0.16290623526951384
+product_name_Nike Kids' Grade School KD VI Basketball Shoe,0.16072308672072813
+order_region_Eastern Asia,0.16070877576742265
+customer_state_NC,0.15952140762353678
+order_region_Oceania,0.15758000085062035
+customer_state_NV,0.15713466021555067
+order_country_infrequent_sklearn,0.1554131879773832
+order_country_Zambia,0.15379573508317518
+product_name_Glove It Women's Mod Oval Golf Glove,0.15148325157313253
+payment_type_CASH,0.14927702224350445
+order_country_Montenegro,0.14806587619292633
+order_country_Iran,0.14712472309156358
+order_country_Bangladesh,0.1470634121122632
+order_country_Peru,0.14696834546629092
+order_country_Dominican Republic,0.14541710004745115
+order_country_Myanmar (Burma),0.14527101598821424
+order_region_Southern Africa,0.14330866654580712
+order_country_Jamaica,0.1428723049150911
+order_country_Russia,0.14274412208093123
+payment_type_TRANSFER,0.14189240035330858
+product_name_TaylorMade White Smoke IN-12 Putter,0.13709617663343315
+order_country_Afghanistan,0.1369576143874508
+market_Europe,0.13609311284572628
+order_country_Kyrgyzstan,0.13587666874881116
+market_Pacific Asia,0.1356459505490202
+product_name_GolfBuddy VT3 GPS Watch,0.13469488443750025
+order_country_Paraguay,0.1346646441030099
+payment_type_DEBIT,0.13291264906936784
+order_country_Republic of the Congo,0.1325661875385602
+product_name_Nike Men's Deutschland Weltmeister Winners Bl,0.12881099338471322
+department_name_Footwear,0.12734157951042382
+product_name_Merrell Women's Grassbow Sport Hiking Shoe,0.12650485996918368
+customer_state_MT,0.1262948691220793
+product_name_Under Armour Women's Micro G Skulpt Running S,0.12592870705317763
+order_country_Cameroon,0.12467720327271009
+order_country_Cuba,0.12406308144998114
+order_country_Martinica,0.12398409530079454
+product_name_Merrell Men's All Out Flash Trail Running Sho,0.12371265718178139
+order_country_Belgium,0.12302727627612686
+market_USCA,0.12136509347992029
+product_name_Bag Boy M330 Push Cart,0.12022440340393827
+customer_state_UT,0.11911940017136176
+department_name_Fitness,0.11820508109181033
+category_name_Golf Balls,0.11614610634371407
+product_name_Titleist Small Wheeled Travel Cover,0.11570029590456467
+category_name_Fitness Accessories,0.11527188803628374
+customer_state_SC,0.11405218560764754
+customer_state_DE,0.11322003500382516
+order_country_Ukraine,0.1102570223280217
+order_country_Egypt,0.10979801174895497
+product_name_Team Golf Tennessee Volunteers Putter Grip,0.10953688143628183
+department_name_Apparel,0.10935667126013175
+market_LATAM,0.10902762104497174
+order_country_Kazakhstan,0.10879513949663204
+order_country_Benin,0.10838222477474124
+product_name_Polar Loop Activity Tracker,0.10831877622026313
+department_name_Book Shop,0.1070514000112846
+product_name_Sports Books,0.1070514000112846
+category_name_Books,0.1070514000112846
+product_name_TYR Boys' Team Digi Jammer,0.10595362468169084
+order_country_Yemen,0.105583757580947
+product_name_Clicgear Rovic Cooler Bag,0.10495248519783403
+product_name_Bridgestone e6 Straight Distance NFL Carolina,0.10403880596804684
+category_name_Tennis & Racquet,0.10384377072205672
+product_name_Nike Men's Comfort 2 Slide,0.10384377072205672
+product_name_Under Armour Women's Ignite PIP VI Slide,0.10323303054921872
+product_name_GoPro HERO3+ Black Edition Camera,0.10316734238951672
+order_region_South America,0.10079431834817444
+order_country_Morocco,0.10011030879517331
+customer_state_HI,0.09850880892038553
+order_country_Portugal,0.09834563210679138
+product_name_insta-bed Neverflat Air Mattress,0.09811529958834213
+order_country_Mali,0.09664550190223237
+order_country_Argentina,0.09601469049402914
+order_country_New Zealand,0.09578148520938488
+order_country_Chile,0.09524609613607432
+product_name_Garmin Forerunner 910XT GPS Watch,0.09520708007085571
+department_name_Golf,0.09347527343389335
+order_country_Djibouti,0.09341169727142254
+product_name_Pelican Maverick 100X Kayak,0.0932580675359672
+market_Africa,0.09150218458401621
+order_country_Romania,0.09146400909490014
+order_country_Libya,0.09052239358166152
+category_name_Music,0.09033325401465268
+product_name_Rock music,0.09033325401465268
+product_name_Nike Women's Free 5.0 TR FIT PRT 4 Training S,0.08940287649115872
+order_country_Thailand,0.08924894962623624
+category_name_Hockey,0.08918518498331104
+order_region_Central Asia,0.08886443701895617
+product_name_CDs of rock,0.08862747470820452
+category_name_CDs,0.08862747470820452
+category_name_Strength Training,0.08843921231636917
+customer_state_CO,0.08658535099226852
+order_region_Canada,0.08582397176182885
+order_country_Canada,0.08582397176182885
+customer_state_IA,0.08528810468256605
+product_name_DVDs,0.08499136010189713
+category_name_DVDs,0.08499136010189713
+order_country_Marfil Coast,0.08479988116230305
+order_country_Panama,0.0847331839360951
+customer_state_MO,0.08467226236573099
+customer_state_LA,0.08434047443834572
+order_country_Filipinas,0.08339097821215148
+product_name_Under Armour Women's Ignite Slide,0.08316734386852538
+product_name_Nike Women's Tempo Shorts,0.08209554705354506
+product_name_Glove It Urban Brick Golf Towel,0.08184098092363197
+order_country_Tanzania,0.08140095119096374
+order_country_Guadalupe,0.08083971578818762
+product_name_Merrell Women's Siren Mid Waterproof Hiking B,0.08069365334407938
+category_name_Water Sports,0.07974079190484178
+customer_state_IN,0.07843558824823946
+order_country_Pakistan,0.07828389409105374
+category_name_Trade-In,0.0773844760480895
+order_country_Albania,0.07652603739286269
+category_name_Basketball,0.07648940891597458
+order_country_Oman,0.07574727982007881
+customer_state_WI,0.07554236944313274
+category_name_Golf Shoes,0.07522189199374785
+order_country_Zimbabwe,0.0747865965729594
+order_country_Indonesia,0.0742712422888553
+product_name_Under Armour Hustle Storm Medium Duffle Bag,0.07409171989060957
+order_country_Honduras,0.07319721756855743
+order_country_Namibia,0.07095752967489864
+order_country_Nicaragua,0.07090916338718824
+category_name_Toys,0.07008472044254975
+product_name_Toys,0.07008472044254975
+customer_state_MA,0.06809809529986016
+order_country_South Korea,0.06804982253232773
+order_country_Madagascar,0.06734492611824121
+product_name_Team Golf Pittsburgh Steelers Putter Grip,0.06713541399656757
+order_country_China,0.06691806203985597
+customer_state_IL,0.06537784397954889
+department_name_Technology,0.06472016966477802
+order_country_Gabon,0.06470623253517138
+order_country_Togo,0.06433822350276491
+product_name_LIJA Women's Button Golf Dress,0.0642651932178916
+product_name_Nike Men's Kobe IX Elite Low Basketball Shoe,0.0638588360274416
+product_name_Nike Men's Free 5.0+ Running Shoe,0.06295557404374678
+order_country_Costa Rica,0.06263879569694493
+order_region_Southern Europe,0.062076883160359045
+order_country_Slovakia,0.06017002934150602
+category_name_Soccer,0.05995889123402073
+product_name_Dell Laptop,0.0598043261740546
+category_name_Computers,0.0598043261740546
+product_name_Fighting video games,0.05881509166390537
+category_name_Video Games,0.05881509166390537
+category_name_Baseball & Softball,0.058748223147380756
+sales_per_customer,0.058276777555559385
+category_name_Men's Golf Clubs,0.05769864455024063
+order_region_East of USA,0.05741286387790554
+product_name_Titleist Club Glove Travel Cover,0.05622558758777162
+order_country_Vietnam,0.05608440060250925
+order_country_Mozambique,0.05605823830812084
+order_country_Ecuador,0.055716080857696366
+customer_state_GA,0.05546553241296463
+order_country_India,0.055220608985873394
+department_name_Outdoors,0.05469942667844408
+category_name_Kids' Golf Clubs,0.05461110772066996
+order_country_Central African Republic,0.05362526508093573
+order_country_Bosnia and Herzegovina,0.052978883169881176
+customer_state_FL,0.05150856033010405
+product_name_Titleist Pro V1 High Numbers Personalized Gol,0.05123474244706004
+customer_state_CA,0.050918668512596243
+product_name_Glove It Women's Mod Oval 3-Zip Carry All Gol,0.05009590613813409
+category_name_Fishing,0.04999481171016097
+product_name_Field & Stream Sportsman 16 Gun Fire Safe,0.04999481171016097
+customer_state_OH,0.048702261805958005
+order_country_Iraq,0.04752167931931322
+order_region_North Africa,0.04682485736675768
+order_country_Italy,0.04642211030602853
+product_name_Top Flite Women's 2014 XL Hybrid,0.045133395248530765
+category_name_Cleats,0.04391818775336146
+product_name_TaylorMade Women's RBZ SL Rescue,0.04289167544150547
+customer_state_ID,0.04204312665552962
+order_country_Democratic Republic of the Congo,0.04180984752793326
+order_country_Singapore,0.04100857650552958
+product_name_Perfect Fitness Perfect Rip Deck,0.04082998791304503
+product_name_Ogio Race Golf Shoes,0.03953934156111491
+category_name_Golf Bags & Carts,0.03953934156111491
+customer_state_WV,0.039081005321934016
+category_name_Golf Apparel,0.03904052338707961
+order_region_Northern Europe,0.03881437285315301
+category_name_Girls' Apparel,0.03876873207211463
+product_name_LIJA Women's Argyle Golf Polo,0.03838145351038211
+customer_state_TX,0.038369958939628475
+department_name_Pet Shop,0.038253874592330754
+category_name_Pet Supplies,0.038253874592330754
+product_name_Adult dog supplies,0.038253874592330754
+order_region_West Asia,0.03787972664148371
+order_region_Central America,0.03780673996752799
+customer_state_VA,0.03766245813399897
+order_country_United States,0.035541121718085836
+customer_state_AZ,0.034808544494838674
+product_name_Nike Men's Dri-FIT Victory Golf Polo,0.03471725499468476
+category_name_Women's Apparel,0.03471725499468476
+customer_state_AR,0.03466233392184362
+product_name_Team Golf St. Louis Cardinals Putter Grip,0.03458381400389672
+order_country_Somalia,0.03425494589185052
+customer_state_MI,0.03411983726338047
+product_name_Team Golf New England Patriots Putter Grip,0.033522983221056825
+profit_per_order,0.03265433699414417
+order_item_discount,0.032460146344773635
+product_name_Lawn mower,0.03226446304882753
+category_name_Garden,0.03226446304882753
+product_name_Polar FT4 Heart Rate Monitor,0.03190902499020699
+order_region_South Asia,0.031055066175035388
+order_country_Mexico,0.030372633733231708
+order_item_total_amount,0.030322337151962836
+order_region_Caribbean,0.029573437270742076
+order_country_Norway,0.028956904034916006
+product_name_Clicgear 8.0 Shoe Brush,0.02778290657164208
+order_country_Turkey,0.02689370251367416
+category_name_Accessories,0.026772635012790848
+order_country_France,0.025975998178402494
+order_country_Nepal,0.025736927525265116
+order_region_Southeast Asia,0.025282054203245592
+order_region_West of USA,0.025195677851974865
+order_country_Saudi Arabia,0.02483416377932799
+order_country_Venezuela,0.024614033914238574
+department_name_Discs Shop,0.024470489131545422
+product_name_adidas Men's Germany Black Crest Away Tee,0.023788824318815627
+order_country_Uruguay,0.023380220781432707
+department_name_Health and Beauty,0.023181308856246467
+product_name_First aid kit,0.023181308856246467
+category_name_Health and Beauty,0.023181308856246467
+product_name_Titleist Pro V1x Golf Balls,0.023123166990536227
+product_name_O'Brien Men's Neoprene Life Vest,0.022728211151797455
+category_name_Indoor/Outdoor Games,0.022728211151797455
+category_name_Women's Clothing,0.022716258426667996
+product_name_Summer dresses,0.022716258426667996
+order_country_Bolivia,0.022110388563003493
+sales,0.02203317101888842
+order_item_discount_rate,0.02193052841537047
+product_name_Under Armour Men's Tech II T-Shirt,0.021486775984537618
+order_quarter,0.02126679280722987
+order_country_Liberia,0.02069181610780134
+category_name_Men's Clothing,0.020594576571365077
+product_name_Men's gala suit,0.020594576571365077
+customer_city_frequency,0.02015883152150258
+order_country_Angola,0.020075196630597994
+product_name_Fitbit The One Wireless Activity & Sleep Trac,0.02004455281757847
+order_region_Western Europe,0.020029174866910936
+order_country_Brazil,0.01966224654277391
+order_country_Azerbaijan,0.019564993761965122
+customer_state_TN,0.019444626552656476
+category_name_Cardio Equipment,0.0191399730098004
+order_country_Haiti,0.019054929802734558
+customer_state_ND,0.018748120783344435
+order_item_quantity,0.018545312400911805
+order_month,0.01794540973391523
+order_country_Senegal,0.01778373752751123
+order_country_Nigeria,0.017675647239880087
+order_country_Guatemala,0.016610363216116024
+order_country_United Kingdom,0.016395630653418956
+order_region_Central Africa,0.01621412878583774
+order_country_Austria,0.016022442209519806
+category_name_Electronics,0.01599348189934962
+order_region_Eastern Europe,0.015172681965297214
+order_weekday,0.014912944113663187
+order_country_Netherlands,0.014876936242563404
+order_is_weekend,0.014763325437714874
+customer_state_PA,0.014421194215453419
+customer_state_KS,0.014272873020968026
+category_name_Children's Clothing,0.014139369534450406
+product_name_Children's heaters,0.014139369534450406
+order_item_profit_ratio,0.014124654775636278
+latitude,0.013900074622901739
+product_name_Pelican Sunstream 100 Kayak,0.013517275631124915
+customer_state_KY,0.013089502483703481
+category_name_Crafts,0.01251203396424239
+product_name_Porcelain crafts,0.01251203396424239
+customer_state_CT,0.012189573373199288
+category_name_Men's Footwear,0.01212369823403033
+product_name_Nike Men's CJ Elite 2 TD Football Cleat,0.01212369823403033
+order_hour,0.011907364357618844
+department_name_Fan Shop,0.011260005865395014
+product_name_Diamondback Women's Serene Classic Comfort Bi,0.010565687648284652
+category_name_Camping & Hiking,0.010565687648284652
+product_name_Diamondback Girls' Clarity 24 Hybrid Bike 201,0.010525629870531825
+order_state_frequency,0.009906585071512508
+order_country_Denmark,0.009715645980220853
+category_name_Boxing & MMA,0.009178121539452288
+order_region_East Africa,0.008865629707716406
+product_price,0.008318009865691034
+order_item_product_price,0.008318009865691034
+category_name_Golf Gloves,0.00814917562529147
+order_country_Argelia,0.008027005557093266
+order_city_frequency,0.007903627524839191
+product_name_Under Armour Men's Compression EV SL Slide,0.00706162961118876
+product_name_TaylorMade 2014 Purelite Stand Bag,0.0065316345496671535
+order_country_Jordan,0.006490505048396193
+order_year,0.005234762340704673
+product_name_Nike Women's Legend V-Neck T-Shirt,0.0051466578146009525
+category_name_As Seen on  TV!,0.005111796335494412
+product_name_Nike Men's Free TR 5.0 TB Training Shoe,0.005111796335494412
+order_day,0.0050001948677445346
+order_country_Germany,0.004576905974851914
+order_region_South of  USA,0.004533469533370664
+longitude,0.004413910342456242
+product_name_Hirzl Men's Hybrid Golf Glove,0.004385898591432086
+product_name_Industrial consumer electronics,0.0038594211079398246
+category_name_Consumer Electronics,0.0038594211079398246
+customer_state_NJ,0.0037415896969275326
+product_name_Total Gym 1400,0.0030881998403151927
+customer_state_NY,0.002649579415700194
+order_country_Colombia,0.0026438746412024896
+order_country_El Salvador,0.0023422917417172547
+order_country_Finland,0.002266805852132815
+order_profit_per_order,0.002138764468244838
+order_region_US Center,0.0012095338412289188
+customer_state_NM,0.0010739826438312615
+product_name_Web Camera,0.0010564223827808806
+category_name_Cameras,0.0010564223827808806
+order_country_Spain,0.0005514157692212544
+order_week,0.00014992471138230084
+customer_state_OR,0.0001284179321014955
+customer_state_MD,6.660074956930554e-05
