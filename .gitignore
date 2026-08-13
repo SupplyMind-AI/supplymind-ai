@@ -11,6 +11,12 @@ __pycache__/
 .env
 .env.*
 !.env.example
+.env.local
+.env.production
+node_modules/
+apps/web/dist/
+__pycache__/
+.pytest_cache/
 
 # Notebooks
 .ipynb_checkpoints/

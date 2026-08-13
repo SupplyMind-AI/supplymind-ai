@@ -10,7 +10,9 @@ services:
     envVars:
       - key: APP_ENV
         value: production
-      - key: postgresql://supplymind:lGEce9GLogx8466dDqgSy9NFF6itZmat@dpg-d9uo9efavr4c73b2uq30-a.frankfurt-postgres.render.com/supplymind_0vfa
+      - key: CORS_ORIGINS
+        value: https://supplymind-ai-ashen.vercel.app,http://localhost:5173
+      - key: DATABASE_URL
         fromDatabase:
           name: supplymind-postgres
           property: connectionString

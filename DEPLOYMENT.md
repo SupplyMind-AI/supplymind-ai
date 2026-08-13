@@ -12,7 +12,7 @@ Backend environment: copy `.env.e2e.example` values into the host's secret manag
 Set `CORS_ORIGINS` to the deployed frontend URL.
 
 Frontend environment:
-`VITE_API_BASE_URL=https://<backend-host>/api`
+`VITE_API_BASE_URL=https://supplymind-ai.onrender.com/api`
 
 Release checks:
 1. `alembic upgrade head`
