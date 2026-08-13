@@ -1,0 +1,54 @@
+services:
+  - type: web
+    name: supplymind-api
+    runtime: python
+    plan: starter
+    buildCommand: pip install -e .
+    startCommand: uvicorn apps.api.main:app --host 0.0.0.0 --port $PORT
+    healthCheckPath: /health
+    autoDeploy: true
+    envVars:
+      - key: APP_ENV
+        value: production
+      - key: DATABASE_URL
+        fromDatabase:
+          name: supplymind-postgres
+          property: connectionString
+      - key: DATABASE_ECHO
+        value: "false"
+      - key: DATABASE_POOL_SIZE
+        value: "5"
+      - key: DATABASE_MAX_OVERFLOW
+        value: "10"
+      - key: OPENAI_API_KEY
+        sync: false
+      - key: LLM_MODEL
+        sync: false
+      - key: EMBEDDING_MODEL
+        value: text-embedding-3-small
+      - key: PINECONE_API_KEY
+        sync: false
+      - key: PINECONE_INDEX_HOST
+        sync: false
+      - key: PINECONE_NAMESPACE_DOCUMENTS
+        value: enterprise-documents
+      - key: OPEN_METEO_BASE_URL
+        value: https://api.open-meteo.com/v1
+      - key: GDELT_BASE_URL
+        value: https://api.gdeltproject.org/api/v2/doc/doc
+      - key: LANGSMITH_API_KEY
+        sync: false
+      - key: LANGCHAIN_TRACING_V2
+        value: "true"
+      - key: LANGCHAIN_PROJECT
+        value: supplymind-ai-production
+      - key: MODEL_REGISTRY_PATH
+        value: models
+      - key: CORS_ORIGINS
+        sync: false
+
+databases:
+  - name: supplymind-postgres
+    plan: starter
+    databaseName: supplymind
+    user: supplymind
