@@ -14,6 +14,7 @@ import {
   WandSparkles,
 } from "lucide-react";
 import { api } from "../api";
+import { predictionView } from "../predictionView";
 import {
   AsyncButton,
   Card,
@@ -217,12 +218,8 @@ export default function Prediction({
     }
   }
 
-  const probability = Number(
-    result?.delay_probability ??
-      result?.probability ??
-      result?.risk_score ??
-      0,
-  );
+  const currentPrediction = result ? predictionView(result) : null;
+  const probability = currentPrediction?.probability ?? 0;
 
   const explanation =
     result?.explanation ??
@@ -504,7 +501,7 @@ export default function Prediction({
                   <RiskGauge probability={probability} />
                   <div>
                     <span className="prediction-label">
-                      {result.is_delayed ?? result.predicted_delay
+                      {currentPrediction?.isDelayed
                         ? "DELAY LIKELY"
                         : "ON TRACK"}
                     </span>
@@ -626,18 +623,11 @@ export default function Prediction({
                   <span>Result</span>
                 </div>
                 {csvResults.map((item, index) => {
-                  const probability = Number(
-                    item.delay_probability ??
-                      item.probability ??
-                      item.risk_score ??
-                      0,
-                  );
-                  const level =
-                    probability >= 0.7
-                      ? "high"
-                      : probability >= 0.4
-                        ? "medium"
-                        : "low";
+                  const batchPrediction = item.ok
+                    ? predictionView(item)
+                    : null;
+                  const probability = batchPrediction?.probability ?? 0;
+                  const level = batchPrediction?.riskLevel ?? "low";
 
                   return (
                     <div
@@ -656,10 +646,7 @@ export default function Prediction({
                       </strong>
                       <span>
                         {item.ok
-                          ? item.is_delayed ??
-                            item.predicted_delay
-                            ? "Delay"
-                            : "On track"
+                          ? batchPrediction?.decisionLabel
                           : "Error"}
                       </span>
                     </div>

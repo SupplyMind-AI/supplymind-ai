@@ -20,6 +20,7 @@ import {
   RiskBadge,
   SectionTitle,
 } from "../components";
+import { predictionView } from "../predictionView";
 
 type Screen =
   | "dashboard"
@@ -39,8 +40,7 @@ export default function Dashboard({
 }: {
   onNavigate: (screen: Screen) => void;
 }) {
-  const [summary, setSummary] = useState<any>(null);
-  const [predictions, setPredictions] = useState<any[]>([]);
+  const [rawPredictions, setRawPredictions] = useState<any[]>([]);
   const [events, setEvents] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
 
@@ -48,16 +48,14 @@ export default function Dashboard({
     let alive = true;
 
     async function load() {
-      const [dashboard, pred, evt] = await Promise.all([
-        safeApi<any>("/dashboard", {}),
+      const [predictionResponse, eventResponse] = await Promise.all([
         safeApi<any[]>("/predictions", []),
         safeApi<any[]>("/events", []),
       ]);
 
       if (!alive) return;
-      setSummary(dashboard);
-      setPredictions(pred);
-      setEvents(evt);
+      setRawPredictions(predictionResponse);
+      setEvents(eventResponse);
       setLoading(false);
     }
 
@@ -67,95 +65,50 @@ export default function Dashboard({
     };
   }, []);
 
-  const totalShipments =
-    summary?.total_shipments ??
-    summary?.shipments ??
-    predictions.length;
+  const predictions = useMemo(
+    () => rawPredictions.map(predictionView),
+    [rawPredictions],
+  );
 
-  const delayed =
-    summary?.predicted_delays ??
-    summary?.delayed_shipments ??
-    predictions.filter((x) => Boolean(x.is_delayed ?? x.predicted_delay))
-      .length;
+  const totalShipments = predictions.length;
+  const delayed = predictions.filter((x) => x.isDelayed).length;
+  const highRisk = predictions.filter((x) => x.riskLevel === "high").length;
+  const avgRisk = predictions.length
+    ? predictions.reduce((sum, x) => sum + x.probability, 0) /
+      predictions.length
+    : 0;
+  const onTimeRate = totalShipments
+    ? ((totalShipments - delayed) / totalShipments) * 100
+    : 0;
 
-  const highRisk =
-    summary?.high_risk_shipments ??
-    predictions.filter(
-      (x) =>
-        String(x.risk_level ?? "").toLowerCase() === "high" ||
-        Number(x.delay_probability ?? x.probability ?? 0) >= 0.7,
-    ).length;
+  const riskCounts = useMemo(
+    () =>
+      predictions.reduce(
+        (acc, item) => {
+          acc[item.riskLevel] += 1;
+          return acc;
+        },
+        { high: 0, medium: 0, low: 0 },
+      ),
+    [predictions],
+  );
 
-  const avgRisk =
-    summary?.average_delay_score ??
-    (predictions.length
-      ? predictions.reduce(
-          (sum, x) =>
-            sum + Number(x.delay_probability ?? x.probability ?? 0),
-          0,
-        ) / predictions.length
-      : 0);
-
-  const onTimeRate =
-    summary?.on_time_rate ??
-    (totalShipments
-      ? ((totalShipments - delayed) / totalShipments) * 100
-      : 0);
-
-  const riskCounts = useMemo(() => {
-    const result = { high: 0, medium: 0, low: 0 };
-    for (const p of predictions) {
-      const probability = Number(
-        p.delay_probability ?? p.probability ?? p.risk_score ?? 0,
-      );
-      const level =
-        String(p.risk_level ?? "").toLowerCase() ||
-        (probability >= 0.7
-          ? "high"
-          : probability >= 0.4
-            ? "medium"
-            : "low");
-
-      if (level in result) {
-        result[level as keyof typeof result] += 1;
-      }
-    }
-    return result;
-  }, [predictions]);
-
-  const trend = predictions
-    .slice(-14)
-    .map((p) => Number(p.delay_probability ?? p.probability ?? 0) * 100);
-
+  const trend = predictions.slice(-14).map((item) => item.probability * 100);
   const topPredictions = [...predictions]
-    .sort(
-      (a, b) =>
-        Number(b.delay_probability ?? b.probability ?? 0) -
-        Number(a.delay_probability ?? a.probability ?? 0),
-    )
+    .sort((a, b) => b.probability - a.probability)
     .slice(0, 5);
 
-  const latestEvents = [...events]
-    .sort(
-      (a, b) =>
-        Number(b.severity ?? 0) - Number(a.severity ?? 0),
-    )
-    .slice(0, 4);
-
   const modeGroups = useMemo(() => {
-    const grouped: Record<string, number[]> = {};
+    const grouped = new Map<string, number[]>();
 
-    for (const prediction of predictions) {
-      const mode = prediction.shipping_mode ?? "Unknown";
-      const probability =
-        Number(prediction.delay_probability ?? prediction.probability ?? 0) *
-        100;
+    predictions.forEach((prediction) => {
+      if (!prediction.shippingMode) return;
+      const values = grouped.get(prediction.shippingMode) ?? [];
+      values.push(prediction.probability * 100);
+      grouped.set(prediction.shippingMode, values);
+    });
 
-      grouped[mode] ??= [];
-      grouped[mode].push(probability);
-    }
-
-    const rows = Object.entries(grouped)
+    return [...grouped.entries()]
       .map(([label, values]) => ({
         label,
         value:
@@ -163,18 +116,12 @@ export default function Dashboard({
           Math.max(values.length, 1),
         note: `${values.length} shipment${values.length === 1 ? "" : "s"}`,
       }))
-      .sort((a, b) => b.value - a.value)
-      .slice(0, 5);
-
-    return rows.length
-      ? rows
-      : [
-          { label: "Standard Class", value: 64, note: "Typical demo exposure" },
-          { label: "Second Class", value: 55, note: "Typical demo exposure" },
-          { label: "First Class", value: 42, note: "Typical demo exposure" },
-          { label: "Same Day", value: 31, note: "Typical demo exposure" },
-        ];
+      .sort((a, b) => b.value - a.value);
   }, [predictions]);
+
+  const latestEvents = [...events]
+    .sort((a, b) => Number(b.severity ?? 0) - Number(a.severity ?? 0))
+    .slice(0, 4);
 
   return (
     <>
@@ -183,10 +130,7 @@ export default function Dashboard({
         title="Command Center"
         subtitle="One view across shipment risk, disruptions, model health and AI recommendations."
         action={
-          <button
-            className="primary"
-            onClick={() => onNavigate("assistant")}
-          >
+          <button className="primary" onClick={() => onNavigate("assistant")}>
             <Sparkles size={16} />
             Investigate with AI
           </button>
@@ -197,7 +141,7 @@ export default function Dashboard({
         <Metric
           label="Total Shipments"
           value={loading ? "—" : totalShipments}
-          delta="Operational records"
+          delta="Scored operational records"
           icon={<PackageSearch size={18} />}
         />
         <Metric
@@ -209,14 +153,14 @@ export default function Dashboard({
         />
         <Metric
           label="On-time Rate"
-          value={loading ? "—" : `${Number(onTimeRate).toFixed(1)}%`}
-          delta="Current portfolio"
+          value={loading ? "—" : `${onTimeRate.toFixed(1)}%`}
+          delta="Predicted portfolio outcome"
           tone="success"
           icon={<PackageCheck size={18} />}
         />
         <Metric
           label="Average Risk"
-          value={loading ? "—" : `${(Number(avgRisk) * 100).toFixed(1)}%`}
+          value={loading ? "—" : `${(avgRisk * 100).toFixed(1)}%`}
           delta="Champion score"
           tone="warning"
           icon={<Activity size={18} />}
@@ -233,13 +177,11 @@ export default function Dashboard({
           <div className="trend-big-v2">
             <div className="trend-number">
               <span>Average predicted risk</span>
-              <strong>{(Number(avgRisk) * 100).toFixed(1)}%</strong>
+              <strong>{(avgRisk * 100).toFixed(1)}%</strong>
               <small>Updated from persisted predictions</small>
             </div>
             <MiniTrend
-              values={
-                trend.length ? trend : [32, 37, 31, 45, 41, 51, 48, 57]
-              }
+              values={trend.length ? trend : [32, 37, 31, 45, 41, 51, 48, 57]}
             />
           </div>
           <div className="trend-footer">
@@ -252,7 +194,7 @@ export default function Dashboard({
         <Card>
           <SectionTitle
             title="Risk Distribution"
-            subtitle="Portfolio exposure"
+            subtitle="Hover or click a risk band to inspect its value"
           />
           <DonutChart
             centerLabel="scored"
@@ -278,16 +220,16 @@ export default function Dashboard({
                 ? `${highRisk} high-risk shipments need review`
                 : "No critical shipment cluster detected"
             }
-            description="Open Shipment Intelligence to inspect the highest probability records and supporting evidence."
+            description="Inspect high-probability records together with route context and predicted outcome."
           />
           <InsightRow
             tone={latestEvents.length ? "warning" : "success"}
             title={`${latestEvents.length} priority disruption signals`}
-            description="External intelligence is normalized from the event feed and can be investigated by region and severity."
+            description="External intelligence can be investigated by region and severity."
           />
           <InsightRow
             title="Champion model is active"
-            description="Model Monitoring and Retraining Center expose model health, challenger jobs and promotion history."
+            description="Model Monitoring and Retraining Center expose model health and challenger workflow."
           />
         </Card>
       </div>
@@ -296,9 +238,16 @@ export default function Dashboard({
         <Card>
           <SectionTitle
             title="Risk by shipping mode"
-            subtitle="Average delay probability by service level"
+            subtitle="Average delay probability by actual service level"
           />
-          <BarChart rows={modeGroups} />
+          {modeGroups.length ? (
+            <BarChart rows={modeGroups} />
+          ) : (
+            <div className="premium-empty-state compact">
+              <b>Shipping-mode context is unavailable</b>
+              <p>Score shipments with route context to populate this chart.</p>
+            </div>
+          )}
         </Card>
 
         <Card>
@@ -306,10 +255,7 @@ export default function Dashboard({
             title="Highest-risk shipments"
             subtitle="Prioritized by delay probability"
             action={
-              <button
-                className="text-button"
-                onClick={() => onNavigate("predictions")}
-              >
+              <button className="text-button" onClick={() => onNavigate("predictions")}>
                 View intelligence →
               </button>
             }
@@ -320,53 +266,31 @@ export default function Dashboard({
               <span>Route</span>
               <span>Risk</span>
               <span>Score</span>
-              <span>Status</span>
+              <span>Prediction</span>
             </div>
 
             {topPredictions.length ? (
-              topPredictions.map((p, index) => {
-                const probability = Number(
-                  p.delay_probability ?? p.probability ?? 0,
-                );
-                const level =
-                  p.risk_level ??
-                  (probability >= 0.7
-                    ? "high"
-                    : probability >= 0.4
-                      ? "medium"
-                      : "low");
-
-                return (
-                  <div className="premium-table-row five" key={p.id ?? index}>
-                    <b>
-                      {p.external_id ??
-                        p.shipment_id ??
-                        p.id ??
-                        `Shipment ${index + 1}`}
-                    </b>
-                    <span>
-                      {p.origin_city ??
-                        p.customer_city ??
-                        "Origin"}{" "}
-                      →{" "}
-                      {p.destination_city ??
-                        p.order_city ??
-                        "Destination"}
-                    </span>
-                    <RiskBadge level={level} />
-                    <strong>{(probability * 100).toFixed(0)}%</strong>
-                    <span>
-                      {p.is_delayed ?? p.predicted_delay
-                        ? "Delay"
-                        : "On track"}
-                    </span>
-                  </div>
-                );
-              })
+              topPredictions.map((item) => (
+                <div className="premium-table-row five" key={item.id || item.shipmentId}>
+                  <b>{item.shipmentId}</b>
+                  <span>
+                    {item.origin ?? "—"} → {item.destination ?? "—"}
+                  </span>
+                  <RiskBadge level={item.riskLevel} />
+                  <strong>{(item.probability * 100).toFixed(1)}%</strong>
+                  <span
+                    className={
+                      item.isDelayed
+                        ? "prediction-decision delayed"
+                        : "prediction-decision on-track"
+                    }
+                  >
+                    {item.decisionLabel}
+                  </span>
+                </div>
+              ))
             ) : (
-              <div className="table-empty">
-                Score a parcel to populate shipment intelligence.
-              </div>
+              <div className="table-empty">Score a parcel to populate shipment intelligence.</div>
             )}
           </div>
         </Card>
@@ -378,10 +302,7 @@ export default function Dashboard({
             title="Disruption Radar"
             subtitle="Highest-severity external events"
             action={
-              <button
-                className="text-button"
-                onClick={() => onNavigate("events")}
-              >
+              <button className="text-button" onClick={() => onNavigate("events")}>
                 Open map →
               </button>
             }
@@ -396,9 +317,7 @@ export default function Dashboard({
                   <div>
                     <b>{event.title ?? "Supply-chain event"}</b>
                     <p>
-                      {[event.region, event.country]
-                        .filter(Boolean)
-                        .join(", ") || "Global"}
+                      {[event.region, event.country].filter(Boolean).join(", ") || "Global"}
                     </p>
                   </div>
                   <RiskBadge
@@ -413,9 +332,7 @@ export default function Dashboard({
                 </div>
               ))
             ) : (
-              <div className="table-empty">
-                No event intelligence loaded yet.
-              </div>
+              <div className="table-empty">No event intelligence loaded yet.</div>
             )}
           </div>
         </Card>

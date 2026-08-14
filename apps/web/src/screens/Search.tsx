@@ -116,7 +116,7 @@ export default function Search() {
         {error && <div className="error">{error}</div>}
       </Card>
 
-      <div className="search-layout">
+      <div className="search-layout search-layout-fixed">
         <Card>
           <SectionTitle
             title="Knowledge results"
@@ -220,7 +220,7 @@ export default function Search() {
           </div>
         </Card>
 
-        <aside className="search-side-panel">
+        <div className="search-side-panel semantic-helper-column">
           <Card>
             <span className="side-panel-kicker">HOW TO READ RESULTS</span>
             <h3>Evidence ranked by semantic similarity</h3>
@@ -247,7 +247,7 @@ export default function Search() {
               </button>
             ))}
           </Card>
-        </aside>
+        </div>
       </div>
     </>
   );

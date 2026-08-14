@@ -1,18 +1,8 @@
 import { useEffect, useMemo, useState } from "react";
-import {
-  ArrowUpRight,
-  Filter,
-  PackagePlus,
-  Sparkles,
-} from "lucide-react";
+import { Filter, PackagePlus } from "lucide-react";
 import { safeApi } from "../api";
-import {
-  Card,
-  Header,
-  Metric,
-  RiskBadge,
-  SectionTitle,
-} from "../components";
+import { Card, Header, Metric, RiskBadge, SectionTitle } from "../components";
+import { predictionView } from "../predictionView";
 
 export default function Predictions({
   onOpenIntake,
@@ -26,47 +16,23 @@ export default function Predictions({
     void safeApi<any[]>("/predictions", []).then(setData);
   }, []);
 
-  const normalized = useMemo(
-    () =>
-      data.map((item) => {
-        const probability = Number(
-          item.delay_probability ??
-            item.probability ??
-            item.risk_score ??
-            0,
-        );
-        const level =
-          String(item.risk_level ?? "").toLowerCase() ||
-          (probability >= 0.7
-            ? "high"
-            : probability >= 0.4
-              ? "medium"
-              : "low");
-
-        return {
-          ...item,
-          probability,
-          level,
-        };
-      }),
-    [data],
-  );
-
+  const predictions = useMemo(() => data.map(predictionView), [data]);
   const shown =
     risk === "all"
-      ? normalized
-      : normalized.filter((item) => item.level === risk);
+      ? predictions
+      : predictions.filter((item) => item.riskLevel === risk);
 
-  const high = normalized.filter((x) => x.level === "high").length;
-  const medium = normalized.filter((x) => x.level === "medium").length;
-  const low = normalized.filter((x) => x.level === "low").length;
+  const delayed = predictions.filter((x) => x.isDelayed).length;
+  const high = predictions.filter((x) => x.riskLevel === "high").length;
+  const medium = predictions.filter((x) => x.riskLevel === "medium").length;
+  const low = predictions.filter((x) => x.riskLevel === "low").length;
 
   return (
     <>
       <Header
         eyebrow="SHIPMENT INTELLIGENCE"
-        title="Predictions"
-        subtitle="Operational view of persisted model scores, risk levels and shipment priorities."
+        title="Shipment Intelligence"
+        subtitle="Operational view of persisted model scores, shipment routes and predicted delivery outcomes."
         action={
           <button className="primary" onClick={onOpenIntake}>
             <PackagePlus size={15} />
@@ -75,8 +41,9 @@ export default function Predictions({
         }
       />
 
-      <div className="metrics four">
-        <Metric label="Scored Shipments" value={normalized.length} />
+      <div className="metrics five">
+        <Metric label="Scored Shipments" value={predictions.length} />
+        <Metric label="Predicted Delays" value={delayed} tone="danger" />
         <Metric label="High Risk" value={high} tone="danger" />
         <Metric label="Medium Risk" value={medium} tone="warning" />
         <Metric label="Low Risk" value={low} tone="success" />
@@ -106,37 +73,33 @@ export default function Predictions({
             <span>Destination</span>
             <span>Risk</span>
             <span>Probability</span>
-            <span>Decision</span>
+            <span>Prediction</span>
           </div>
 
-          {shown.map((item, index) => (
+          {shown.map((item) => (
             <div
               className="premium-table-row six interactive"
-              key={item.id ?? index}
+              key={item.id || item.shipmentId}
             >
-              <b>
-                {item.external_id ??
-                  item.shipment_id ??
-                  item.id ??
-                  `Shipment ${index + 1}`}
-              </b>
-              <span>{item.origin_city ?? item.customer_city ?? "—"}</span>
-              <span>{item.destination_city ?? item.order_city ?? "—"}</span>
-              <RiskBadge level={item.level} />
+              <b>{item.shipmentId}</b>
+              <span>{item.origin ?? "—"}</span>
+              <span>{item.destination ?? "—"}</span>
+              <RiskBadge level={item.riskLevel} />
               <strong>{(item.probability * 100).toFixed(1)}%</strong>
-              <span className="decision-link">
-                {item.is_delayed ?? item.predicted_delay
-                  ? "Delay"
-                  : "On track"}
-                <ArrowUpRight size={13} />
+              <span
+                className={
+                  item.isDelayed
+                    ? "prediction-decision delayed"
+                    : "prediction-decision on-track"
+                }
+              >
+                {item.decisionLabel}
               </span>
             </div>
           ))}
 
           {!shown.length && (
-            <div className="table-empty">
-              No predictions match this filter.
-            </div>
+            <div className="table-empty">No predictions match this filter.</div>
           )}
         </div>
       </Card>

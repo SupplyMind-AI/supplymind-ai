@@ -1,4 +1,4 @@
-import type { ReactNode } from "react";
+import { useState, type ReactNode } from "react";
 import { motion } from "framer-motion";
 import {
   AlertTriangle,
@@ -284,6 +284,7 @@ export function DonutChart({
   centerLabel: string;
   centerValue: string | number;
 }) {
+  const [selected, setSelected] = useState<(typeof segments)[number] | null>(null);
   const total = Math.max(
     1,
     segments.reduce((sum, segment) => sum + segment.value, 0),
@@ -304,38 +305,52 @@ export function DonutChart({
     );
   }
 
+  const activeValue = selected?.value ?? centerValue;
+  const activeLabel = selected?.label ?? centerLabel;
+  const activePercent = selected
+    ? `${((selected.value / total) * 100).toFixed(0)}%`
+    : null;
+
   return (
     <div className="donut-wrap">
       <motion.div
         className="risk-donut interactive-donut"
-        style={{
-          background: `conic-gradient(${stops.join(",")})`,
-        }}
+        style={{ background: `conic-gradient(${stops.join(",")})` }}
         initial={{ rotate: -80, scale: 0.82, opacity: 0 }}
         animate={{ rotate: 0, scale: 1, opacity: 1 }}
         transition={{ duration: 0.65, ease: [0.16, 1, 0.3, 1] }}
         whileHover={{ scale: 1.045 }}
+        onClick={() => selected && setSelected(null)}
       >
-        <div>
-          <strong>{centerValue}</strong>
-          <span>{centerLabel}</span>
-        </div>
+        <motion.div
+          key={`${activeLabel}-${activeValue}`}
+          initial={{ opacity: 0, scale: 0.8 }}
+          animate={{ opacity: 1, scale: 1 }}
+        >
+          <strong>{activeValue}</strong>
+          <span>{activeLabel}</span>
+          {activePercent && <small>{activePercent}</small>}
+        </motion.div>
       </motion.div>
 
       <div className="donut-legend">
         {segments.map((segment) => (
-          <motion.div
+          <motion.button
+            type="button"
             key={segment.label}
-            className="donut-legend-row"
+            className={`donut-legend-row donut-legend-button ${
+              selected?.label === segment.label ? "selected" : ""
+            }`}
             whileHover={{ x: 4 }}
+            onMouseEnter={() => setSelected(segment)}
+            onMouseLeave={() => setSelected(null)}
+            onClick={() => setSelected(segment)}
           >
             <i className={segment.tone} />
             <span>{segment.label}</span>
             <b>{segment.value}</b>
-            <small>
-              {((segment.value / total) * 100).toFixed(0)}%
-            </small>
-          </motion.div>
+            <small>{((segment.value / total) * 100).toFixed(0)}%</small>
+          </motion.button>
         ))}
       </div>
     </div>
