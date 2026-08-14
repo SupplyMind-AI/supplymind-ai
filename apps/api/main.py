@@ -4,7 +4,7 @@ import os
 from contextlib import asynccontextmanager
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
-from apps.api.routers import alerts, assistant, dashboard, events, health, monitoring, predictions, retraining, search, settings, shipments, weather
+from apps.api.routers import alerts, assistant, dashboard, events, health, monitoring, operations, predictions, rag, retraining, search, settings, shipments, weather
 from supplymind.features.model_registry.application.bootstrap import register_champion_if_available
 from supplymind.features.model_registry.infrastructure.repositories import SqlAlchemyModelRegistryRepository
 from supplymind.shared.config.settings import get_settings
@@ -42,5 +42,5 @@ app.add_middleware(CORSMiddleware,allow_origins=cfg.parsed_cors_origins,allow_cr
 @app.get("/health")
 async def root_health():return {"status":"ok","service":"SupplyMind AI"}
 
-for router in (dashboard.router,assistant.router,shipments.router,predictions.router,alerts.router,events.router,weather.router,search.router,retraining.router,monitoring.router,settings.router,health.router):
+for router in (dashboard.router,assistant.router,shipments.router,predictions.router,alerts.router,events.router,weather.router,search.router,rag.router,operations.router,retraining.router,monitoring.router,settings.router,health.router):
     app.include_router(router,prefix="/api")

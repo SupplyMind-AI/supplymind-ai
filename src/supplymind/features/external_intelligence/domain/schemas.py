@@ -8,10 +8,6 @@ from enum import StrEnum
 from pydantic import BaseModel, Field
 
 
-# -------------------
-# Location
-# -------------------
-
 class ResolvedLocation(BaseModel):
     """Geocoded location used for weather and event context."""
 
@@ -23,10 +19,6 @@ class ResolvedLocation(BaseModel):
     longitude: float
     timezone: str | None = None
 
-
-# -------------------
-# Weather
-# -------------------
 
 class WeatherRiskAssessment(BaseModel):
     """Deterministic weather-risk summary for a shipment location."""
@@ -44,24 +36,23 @@ class WeatherRiskAssessment(BaseModel):
     forecast_end: datetime | None = None
 
 
-# -------------------
-# GDELT source article
-# -------------------
-
-class GdeltArticle(BaseModel):
-    """Small stable projection of a GDELT DOC article."""
+class NewsArticle(BaseModel):
+    """Provider-neutral article projection used by disruption extraction."""
 
     url: str
     title: str
     domain: str | None = None
+    source_title: str | None = None
     source_country: str | None = None
     language: str | None = None
     seen_at: datetime | None = None
+    body_excerpt: str | None = None
+    location_name: str | None = None
 
 
-# -------------------
-# Event taxonomy
-# -------------------
+# Backward compatibility for the old GDELT module while NewsAPI.ai becomes active.
+GdeltArticle = NewsArticle
+
 
 class EventType(StrEnum):
     """Controlled SupplyMind V1 disruption taxonomy."""
@@ -79,17 +70,8 @@ class EventType(StrEnum):
     OTHER = "other"
 
 
-# -------------------
-# Structured event extraction
-# -------------------
-
 class ExtractedSupplyChainEvent(BaseModel):
-    """Validated event extracted from a candidate GDELT article.
-
-    All application-facing text is normalized to English. Original source
-    language/title/url remain available on ``GdeltArticle`` and are persisted
-    in the event ``raw_payload`` for provenance.
-    """
+    """Validated event extracted from a candidate news article."""
 
     is_relevant: bool = Field(
         description=(
@@ -98,54 +80,19 @@ class ExtractedSupplyChainEvent(BaseModel):
             "production supply, border flow, ports, warehousing or delivery."
         )
     )
-
     event_type: EventType = EventType.OTHER
-
     normalized_title: str | None = Field(
         default=None,
         description="Short English title describing the disruption.",
     )
-
     summary: str | None = Field(
         default=None,
-        description=(
-            "Concise English operational summary grounded only in the "
-            "provided article metadata."
-        ),
+        description="Concise English operational summary grounded in the supplied article.",
     )
-
-    severity: float | None = Field(
-        default=None,
-        ge=0.0,
-        le=1.0,
-        description=(
-            "Operational severity from 0 to 1. "
-            "0.0-0.2 minimal, 0.3-0.4 low/local, "
-            "0.5-0.6 moderate, 0.7-0.8 major, "
-            "0.9-1.0 critical/widespread."
-        ),
-    )
-
-    country: str | None = Field(
-        default=None,
-        description="Country name normalized to English.",
-    )
-    region: str | None = Field(
-        default=None,
-        description="Region/state/province normalized to English.",
-    )
-    city: str | None = Field(
-        default=None,
-        description="City normalized to English when supported.",
-    )
-
+    severity: float | None = Field(default=None, ge=0.0, le=1.0)
+    country: str | None = None
+    region: str | None = None
+    city: str | None = None
     starts_at: datetime | None = None
     ends_at: datetime | None = None
-
-    rationale: str | None = Field(
-        default=None,
-        description=(
-            "Brief explanation of why the article is or is not considered "
-            "an operational supply-chain disruption."
-        ),
-    )
+    rationale: str | None = None

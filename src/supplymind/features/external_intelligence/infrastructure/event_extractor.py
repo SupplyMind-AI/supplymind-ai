@@ -1,4 +1,4 @@
-"""LLM structured extraction for GDELT supply-chain disruptions."""
+"""LLM structured extraction for provider-neutral supply-chain news."""
 
 from __future__ import annotations
 
@@ -8,13 +8,9 @@ from langchain_openai import ChatOpenAI
 
 from supplymind.features.external_intelligence.domain.schemas import (
     ExtractedSupplyChainEvent,
-    GdeltArticle,
+    NewsArticle,
 )
 
-
-# -------------------
-# Extraction policy
-# -------------------
 
 _SYSTEM_PROMPT = """
 You are the SupplyMind external-event extraction component.
@@ -82,20 +78,14 @@ LANGUAGE
 
 Return normalized_title, summary, country, region and city in ENGLISH,
 regardless of the source language.
-Do not translate or invent unsupported facts beyond what is needed to express
-the same supported information in English.
 
 GROUNDING
 
-Use only the supplied article metadata.
+Use only the supplied article metadata/body excerpt.
 Do not invent locations, dates, severity evidence, causes or impacts.
 If a field is unsupported, return null.
 """
 
-
-# -------------------
-# Structured extractor
-# -------------------
 
 class StructuredEventExtractor:
     """Provider-backed extractor with validated structured output."""
@@ -124,7 +114,7 @@ class StructuredEventExtractor:
 
     async def extract(
         self,
-        article: GdeltArticle,
+        article: NewsArticle,
     ) -> ExtractedSupplyChainEvent:
         """Extract one normalized disruption event."""
 
@@ -132,10 +122,13 @@ class StructuredEventExtractor:
             f"{_SYSTEM_PROMPT}\n\n"
             "ARTICLE METADATA\n"
             f"Original title: {article.title}\n"
+            f"Source: {article.source_title or article.domain or 'unknown'}\n"
             f"Source language: {article.language or 'unknown'}\n"
             f"Domain: {article.domain or 'unknown'}\n"
             f"Source country: {article.source_country or 'unknown'}\n"
-            f"Seen at: {article.seen_at or 'unknown'}\n"
+            f"Provider location: {article.location_name or 'unknown'}\n"
+            f"Published at: {article.seen_at or 'unknown'}\n"
+            f"Body excerpt: {article.body_excerpt or 'not provided'}\n"
             f"URL: {article.url}"
         )
 
@@ -146,15 +139,12 @@ class StructuredEventExtractor:
 
     async def extract_many(
         self,
-        articles: list[GdeltArticle],
+        articles: list[NewsArticle],
     ) -> list[ExtractedSupplyChainEvent | None]:
-        """Extract several articles with bounded concurrency.
-
-        Individual LLM failures do not abort the whole ingestion batch.
-        """
+        """Extract several articles with bounded concurrency."""
 
         async def safe_extract(
-            article: GdeltArticle,
+            article: NewsArticle,
         ) -> ExtractedSupplyChainEvent | None:
             try:
                 return await self.extract(article)

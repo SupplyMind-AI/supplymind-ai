@@ -13,6 +13,8 @@ import {
   Search,
   Settings,
   Sparkles,
+  Boxes,
+  Network,
 } from "lucide-react";
 
 import { ScreenProgress } from "./components";
@@ -27,6 +29,8 @@ import Retraining from "./screens/Retraining";
 import Monitoring from "./screens/Monitoring";
 import SettingsScreen from "./screens/Settings";
 import Reports from "./screens/Reports";
+import RagExplorer from "./screens/RagExplorer";
+import Operations from "./screens/Operations";
 
 type Screen =
   | "dashboard"
@@ -37,6 +41,8 @@ type Screen =
   | "events"
   | "search"
   | "reports"
+  | "rag"
+  | "operations"
   | "monitoring"
   | "retraining"
   | "settings";
@@ -50,6 +56,7 @@ const groups = [
       ["predictions", "Shipment Intelligence", BarChart3],
       ["events", "Event Monitor", Globe2],
       ["search", "Semantic Search", Search],
+      ["rag", "RAG Explorer", Network],
       ["reports", "Executive Brief", FileBarChart2],
     ],
   },
@@ -57,6 +64,7 @@ const groups = [
     label: "OPERATIONS",
     items: [
       ["prediction", "Parcel Intake", PackagePlus],
+      ["operations", "Operations Hub", Boxes],
       ["alerts", "Risk Alerts", AlertTriangle],
     ],
   },
@@ -101,6 +109,10 @@ export default function App() {
         return <SearchScreen />;
       case "reports":
         return <Reports />;
+      case "rag":
+        return <RagExplorer />;
+      case "operations":
+        return <Operations />;
       case "monitoring":
         return <Monitoring />;
       case "retraining":

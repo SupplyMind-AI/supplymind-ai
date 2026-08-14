@@ -36,8 +36,8 @@ const integrations = [
     icon: CloudSun,
   },
   {
-    key: "gdelt",
-    title: "GDELT",
+    key: "news_api_ai",
+    title: "NewsAPI.ai",
     description: "Global disruption intelligence",
     icon: Globe2,
   },

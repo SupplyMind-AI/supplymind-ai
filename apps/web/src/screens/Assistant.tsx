@@ -138,9 +138,8 @@ export default function Assistant() {
       const response = await api<any>("/assistant", {
         method: "POST",
         body: JSON.stringify({
+          query: currentQuestion,
           shipment_id: shipmentId || null,
-          question: currentQuestion,
-          message: currentQuestion,
         }),
       });
 

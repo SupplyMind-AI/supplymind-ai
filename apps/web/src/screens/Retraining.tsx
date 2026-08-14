@@ -5,9 +5,12 @@ import {
   CheckCircle2,
   Play,
   RefreshCcw,
+  Sparkles,
 } from "lucide-react";
+
 import { api, safeApi } from "../api";
 import {
+  AsyncButton,
   Card,
   Header,
   Metric,
@@ -21,6 +24,8 @@ export default function Retraining() {
     "Manual validation of retraining workflow",
   );
   const [running, setRunning] = useState(false);
+  const [queuedJobId, setQueuedJobId] = useState<string | null>(null);
+  const [notice, setNotice] = useState("");
 
   async function load() {
     setJobs(await safeApi<any[]>("/retraining", []));
@@ -32,12 +37,23 @@ export default function Retraining() {
 
   async function go(event: FormEvent) {
     event.preventDefault();
+
+    if (!reason.trim() || running) return;
+
     setRunning(true);
+    setNotice("");
+
     try {
-      await api("/retraining", {
+      const created = await api<any>("/retraining", {
         method: "POST",
-        body: JSON.stringify({ reason }),
+        body: JSON.stringify({ reason: reason.trim() }),
       });
+
+      setQueuedJobId(created?.id ? String(created.id) : null);
+      setNotice(
+        "Retraining request queued successfully. The job is persisted and waiting for the training worker/workflow to start.",
+      );
+
       await load();
     } finally {
       setRunning(false);
@@ -54,33 +70,39 @@ export default function Retraining() {
         subtitle="Controlled model-lifecycle simulation with triggers, challenger evaluation and promotion history."
       />
 
-      <div className="metrics four">
+      <div className="metrics four compact-metrics">
         <Metric
-          label="Champion Status"
-          value="Active"
-          tone="success"
+          label="Queue status"
+          value={latest?.status ?? "Ready"}
+          tone={
+            latest?.status === "failed"
+              ? "danger"
+              : latest?.status === "queued"
+                ? "warning"
+                : "success"
+          }
           icon={<BrainCircuit size={16} />}
         />
         <Metric
-          label="Recent Jobs"
+          label="Recent jobs"
           value={jobs.length}
           icon={<RefreshCcw size={16} />}
         />
         <Metric
-          label="Next Evaluation"
+          label="Next evaluation"
           value="Scheduled"
           icon={<CalendarClock size={16} />}
         />
         <Metric
-          label="Latest Decision"
-          value={latest?.status ?? "Ready"}
-          tone={latest?.status === "failed" ? "danger" : "success"}
+          label="Latest request"
+          value={latest ? "Recorded" : "Ready"}
+          tone="success"
           icon={<CheckCircle2 size={16} />}
         />
       </div>
 
       <div className="grid2">
-        <Card>
+        <Card className="compact-card">
           <SectionTitle
             title="Model lifecycle"
             subtitle="Production retraining workflow"
@@ -110,10 +132,10 @@ export default function Retraining() {
           </div>
         </Card>
 
-        <Card>
+        <Card className="compact-card">
           <SectionTitle
-            title="Run controlled retraining"
-            subtitle="V1 honestly simulates new-data arrival using retained holdout data"
+            title="Queue controlled retraining"
+            subtitle="V1 records the request; a training worker advances queued jobs"
           />
 
           <form className="stack" onSubmit={go}>
@@ -121,27 +143,44 @@ export default function Retraining() {
               value={reason}
               onChange={(e) => setReason(e.target.value)}
             />
-            <button className="primary" disabled={running}>
+
+            <AsyncButton
+              loading={running}
+              loadingText="Queuing retraining job"
+              className="primary"
+              type="submit"
+            >
               <Play size={15} />
-              {running ? "Queueing…" : "Run retraining workflow"}
-            </button>
+              Queue retraining job
+            </AsyncButton>
           </form>
 
+          {notice && (
+            <div className="retraining-success">
+              <Sparkles size={16} />
+              <div>
+                <b>Job queued</b>
+                <p>{notice}</p>
+              </div>
+            </div>
+          )}
+
           <div className="policy-box">
-            <b>Promotion policy</b>
+            <b>What “queued” means</b>
             <p>
-              A challenger is promoted only when it outperforms the
-              active champion according to the configured validation
-              policy.
+              The API has persisted the retraining request. It is not yet a
+              completed model training run. A worker or training workflow must
+              set started_at, run challenger training/evaluation, then update
+              the job outcome.
             </p>
           </div>
         </Card>
       </div>
 
-      <Card>
+      <Card className="compact-card">
         <SectionTitle
           title="Retraining history"
-          subtitle="Saved workflow jobs and promotion outcomes"
+          subtitle="Saved workflow jobs and lifecycle state"
         />
 
         <div className="premium-table">
@@ -151,18 +190,27 @@ export default function Retraining() {
             <span>Status</span>
             <span>Requested</span>
           </div>
+
           {jobs.map((job, index) => (
             <div
-              className="premium-table-row four"
+              className={`premium-table-row four retraining-job-row ${
+                String(job.id) === queuedJobId ? "just-queued" : ""
+              }`}
               key={job.id ?? index}
             >
-              <b>{job.reason}</b>
+              <div>
+                <b>{job.reason}</b>
+                {String(job.id) === queuedJobId && (
+                  <small>Newly queued</small>
+                )}
+              </div>
               <span>{job.trigger_type ?? "manual"}</span>
               <RiskBadge
                 level={
                   job.status === "failed"
                     ? "high"
-                    : job.status === "succeeded"
+                    : job.status === "succeeded" ||
+                        job.status === "completed"
                       ? "low"
                       : "medium"
                 }
@@ -174,6 +222,7 @@ export default function Retraining() {
               </span>
             </div>
           ))}
+
           {!jobs.length && (
             <div className="table-empty">
               No retraining jobs recorded yet.

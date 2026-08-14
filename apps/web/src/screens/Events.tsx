@@ -180,7 +180,7 @@ export default function Events() {
   return (
     <>
       <Header
-        eyebrow="GDELT · EXTERNAL INTELLIGENCE"
+        eyebrow="NEWSAPI.AI · EXTERNAL INTELLIGENCE"
         title="Event Monitor"
         subtitle="Global logistics disruptions normalized into operational risk signals."
         action={
@@ -206,7 +206,7 @@ export default function Events() {
       <Card className="map-card">
         <SectionTitle
           title="Global disruption map"
-          subtitle={`${geocoded.length} geocoded events · ${shown.length} active signals`}
+          subtitle={`${shown.length} active events · ${geocoded.length} mapped · ${shown.length - geocoded.length} awaiting precise coordinates`}
           action={<Globe2 size={19} />}
         />
 
@@ -257,6 +257,18 @@ export default function Events() {
             </div>
           )}
         </div>
+
+        {shown.length > geocoded.length && (
+          <div className="map-coverage-note">
+            <Globe2 size={15} />
+            <span>
+              {shown.length - geocoded.length} event
+              {shown.length - geocoded.length === 1 ? "" : "s"} are listed
+              without map pins because a precise latitude/longitude has not
+              been resolved yet.
+            </span>
+          </div>
+        )}
 
         {selected && (
           <div className="selected-event-panel">

@@ -12,11 +12,12 @@ from supplymind.features.events.infrastructure.repositories import (
     SqlAlchemyEventRepository,
 )
 from supplymind.features.external_intelligence.application.weather import GetWeatherRisk
-from supplymind.features.external_intelligence.infrastructure.gdelt import GdeltClient
+from supplymind.features.external_intelligence.infrastructure.news_api_ai import NewsApiAiClient
 from supplymind.features.external_intelligence.infrastructure.open_meteo import (
     OpenMeteoClient,
 )
 from supplymind.features.knowledge.application.search import SemanticSearch
+from supplymind.features.knowledge.application.rag import GroundedRag
 from supplymind.features.knowledge.infrastructure.repositories import (
     SqlAlchemyDocumentRegistryRepository,
 )
@@ -43,15 +44,45 @@ from supplymind.shared.config.settings import Settings, get_settings
 from supplymind.shared.infrastructure.database.session import AsyncSessionFactory
 
 
-async def get_session() -> AsyncIterator[AsyncSession]:
-    """One transaction-scoped SQLAlchemy session per request."""
+from collections.abc import AsyncIterator
 
-    try:
-        async with AsyncSessionFactory() as session:
-            async with session.begin():
-                yield session
-    except Exception as exc:  # pragma: no cover - infrastructure error
-        raise HTTPException(status_code=503, detail="Database unavailable") from exc
+from fastapi import HTTPException
+from sqlalchemy.exc import DBAPIError, OperationalError
+from sqlalchemy.ext.asyncio import AsyncSession
+
+
+async def get_session() -> AsyncIterator[AsyncSession]:
+    """Provide one SQLAlchemy session per request.
+
+    SQLAlchemy 2.x automatically begins a transaction when the session
+    executes its first database operation, so we must not combine an
+    explicit connection check with `session.begin()`.
+    """
+
+    async with AsyncSessionFactory() as session:
+        try:
+            yield session
+
+            # Commit writes performed during the request.
+            if session.in_transaction():
+                await session.commit()
+
+        except (OperationalError, DBAPIError) as exc:
+            if session.in_transaction():
+                await session.rollback()
+
+            raise HTTPException(
+                status_code=503,
+                detail="Database unavailable",
+            ) from exc
+
+        except Exception:
+            if session.in_transaction():
+                await session.rollback()
+
+            # Important: preserve non-database exceptions so we can see
+            # the real Assistant / LangGraph / Pinecone / OpenAI error.
+            raise
 
 
 def get_settings_dependency() -> Settings:
@@ -101,13 +132,18 @@ def get_weather_service() -> GetWeatherRisk:
 
 
 @lru_cache
-def get_gdelt_client() -> GdeltClient:
+def get_news_api_ai_client() -> NewsApiAiClient:
     settings = get_settings()
-    return GdeltClient(
-        base_url=settings.gdelt_doc_url,
-        query=settings.gdelt_query,
-        timespan=settings.gdelt_timespan,
-        max_records=settings.gdelt_max_records,
+    return NewsApiAiClient(
+        api_key=settings.news_api_ai_api_key,
+        base_url=settings.news_api_ai_url,
+        query=settings.news_api_ai_query,
+        language=settings.news_api_ai_language,
+        lookback_days=settings.news_api_ai_lookback_days,
+        max_records=settings.news_api_ai_max_records,
+        timeout_seconds=settings.news_api_ai_timeout_seconds,
+        max_retries=settings.news_api_ai_max_retries,
+        retry_wait_seconds=settings.news_api_ai_retry_wait_seconds,
     )
 
 
@@ -134,6 +170,15 @@ def get_semantic_search() -> SemanticSearch:
         vector_store=get_semantic_store(),
         namespace=settings.pinecone_namespace_documents,
         default_top_k=settings.semantic_search_top_k,
+    )
+
+
+def get_rag_service() -> GroundedRag:
+    settings = get_settings()
+    return GroundedRag(
+        semantic_search=get_semantic_search(),
+        model=settings.llm_model,
+        api_key=settings.openai_api_key,
     )
 
 

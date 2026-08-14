@@ -1176,24 +1176,471 @@ body{
   }
 }
 
-/* ===== E2E correctness + interaction fixes ===== */
-.metrics.five{grid-template-columns:repeat(5,minmax(0,1fr))}
-.prediction-decision{display:inline-flex;align-items:center;justify-content:center;width:max-content;min-width:82px;padding:5px 9px;border-radius:999px;font-size:10px;font-weight:750;white-space:nowrap}
-.prediction-decision.delayed{color:#ff8fa4;background:rgba(255,79,112,.13);border:1px solid rgba(255,79,112,.28)}
-.prediction-decision.on-track{color:#64e6ad;background:rgba(47,213,145,.10);border:1px solid rgba(47,213,145,.23)}
-.interactive-donut small{display:block;margin-top:3px;color:#8f7cff;font-size:9px}
-.donut-legend-button{width:100%;border:1px solid transparent;background:transparent;color:inherit;text-align:left;cursor:pointer;border-radius:8px;padding:6px}
-.donut-legend-button:hover,.donut-legend-button.selected{background:rgba(126,88,255,.08);border-color:rgba(126,88,255,.20)}
-.search-layout-fixed{display:grid;grid-template-columns:minmax(0,1fr) 250px;gap:14px;align-items:start}
-.semantic-helper-column{position:static!important;inset:auto!important;width:auto!important;min-height:0!important;height:auto!important;background:transparent!important;border:0!important;padding:0!important;display:grid;gap:12px}
-.alert-queue-v2{display:grid}
-.alert-row-v2{display:grid;grid-template-columns:34px minmax(0,1fr) 75px 86px 100px;gap:10px;align-items:center;min-height:58px;border-top:1px solid #19304a}
-.alert-row-icon{width:29px;height:29px;display:grid;place-items:center;border-radius:8px;background:rgba(255,78,112,.12);color:#ff6380}
-.alert-row-content b{display:block;font-size:11px}.alert-row-content small{display:block;color:#7e92ab;font-size:9px;margin-top:3px}
-.secondary-inline{display:inline-flex;align-items:center;justify-content:center;gap:5px;padding:7px 9px;border:1px solid #29415f;border-radius:8px;color:#b6c5d8;background:#0e2136;cursor:pointer;font-size:9px}
-.modal-backdrop{position:fixed;inset:0;z-index:10000;display:grid;place-items:center;padding:24px;background:rgba(2,8,16,.68);backdrop-filter:blur(8px)}
-.risk-detail-modal{position:relative;width:min(520px,92vw);padding:24px;border-radius:16px;border:1px solid #2b4362;background:linear-gradient(145deg,#0a1c2f,#071522);box-shadow:0 30px 80px rgba(0,0,0,.45)}
-.modal-close{position:absolute;right:14px;top:14px;width:32px;height:32px;display:grid;place-items:center;border:0;border-radius:8px;background:#11253b;color:#a9bad0;cursor:pointer}
-.risk-detail-score{display:flex;justify-content:space-between;align-items:center;margin:20px 0;padding:16px;border:1px solid #253d5a;border-radius:12px;background:#091a2c}.risk-detail-score>strong{font-size:34px}.risk-detail-score>div{display:grid;gap:8px;justify-items:end}
-.risk-next-steps{padding:16px;border:1px solid #49385f;border-radius:12px;background:rgba(70,42,96,.18)}.risk-next-steps h3{margin:0 0 10px;font-size:13px}.risk-next-steps ol{margin:0;padding-left:18px;color:#9eb0c7;font-size:10px;line-height:1.75}
-@media(max-width:1100px){.metrics.five{grid-template-columns:repeat(3,minmax(0,1fr))}.search-layout-fixed{grid-template-columns:1fr}.semantic-helper-column{grid-template-columns:1fr 1fr}.alert-row-v2{grid-template-columns:34px minmax(0,1fr) 75px}}
+/* =========================================================
+   Presentation polish — compact intelligence cards
+   ========================================================= */
+
+.compact-card {
+  padding: 16px 18px;
+}
+
+.compact-metrics {
+  gap: 10px;
+  margin-bottom: 14px;
+}
+
+.metrics.five {
+  grid-template-columns: repeat(5, minmax(0, 1fr));
+}
+
+.compact-metrics .metric {
+  min-height: 104px;
+  padding: 14px 15px;
+}
+
+.compact-metrics .metric strong {
+  font-size: 25px;
+  margin-top: 6px;
+}
+
+.compact-metrics .metric span {
+  font-size: 10px;
+}
+
+.compact-metrics .metric small {
+  font-size: 9px;
+}
+
+.compact-filter-row {
+  flex-wrap: wrap;
+  justify-content: flex-end;
+  gap: 7px;
+}
+
+.compact-filter-row select {
+  min-height: 32px;
+  font-size: 9px;
+  padding: 6px 26px 6px 8px;
+}
+
+/* =========================================================
+   Shipment Intelligence / prediction decisions
+   ========================================================= */
+
+.prediction-decision {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: max-content;
+  min-width: 78px;
+  padding: 5px 8px;
+  border-radius: 999px;
+  font-size: 9px;
+  font-weight: 750;
+  white-space: nowrap;
+}
+
+.prediction-decision.delayed {
+  color: #ff8fa4;
+  background: rgba(255, 79, 112, 0.13);
+  border: 1px solid rgba(255, 79, 112, 0.28);
+}
+
+.prediction-decision.on-track {
+  color: #64e6ad;
+  background: rgba(47, 213, 145, 0.10);
+  border: 1px solid rgba(47, 213, 145, 0.23);
+}
+
+/* =========================================================
+   CSV batch — reduce oversized cards and restore filters
+   ========================================================= */
+
+.csv-drop-card {
+  max-width: 100%;
+}
+
+.csv-drop-card .csv-drop {
+  min-height: 190px;
+  padding: 24px;
+}
+
+.csv-drop-card .csv-drop svg {
+  width: 30px;
+  height: 30px;
+}
+
+.csv-drop-card .csv-drop b {
+  font-size: 13px;
+}
+
+.csv-drop-card .csv-drop p {
+  font-size: 9px;
+  margin: 5px 0 12px;
+}
+
+.csv-summary {
+  padding-top: 12px;
+}
+
+.batch-preview-card,
+.batch-results-card {
+  margin-top: 12px;
+}
+
+/* =========================================================
+   Risk Alerts — restore clean row + popup design
+   ========================================================= */
+
+.premium-alert-feed {
+  display: grid;
+  gap: 0;
+}
+
+.premium-alert-row {
+  display: grid;
+  grid-template-columns: 34px minmax(0, 1fr) 105px 88px;
+  gap: 12px;
+  align-items: center;
+  min-height: 68px;
+  padding: 10px 4px;
+  border-top: 1px solid #1b314b;
+}
+
+.premium-alert-row:first-child {
+  border-top: 0;
+}
+
+.premium-alert-row:hover {
+  background: linear-gradient(
+    90deg,
+    rgba(73, 61, 142, 0.08),
+    transparent
+  );
+}
+
+.premium-alert-row.acknowledged {
+  opacity: 0.62;
+}
+
+.premium-alert-row.acknowledged .alert-feed-icon {
+  color: #55d69e;
+  background: rgba(55, 196, 139, 0.1);
+}
+
+.alert-copy {
+  min-width: 0;
+}
+
+.alert-copy b {
+  display: block;
+  color: #edf4ff;
+  font-size: 11px;
+}
+
+.alert-copy p {
+  margin: 3px 0;
+  color: #8295ae;
+  font-size: 9px;
+  line-height: 1.45;
+}
+
+.alert-copy small {
+  color: #657b98;
+  font-size: 8px;
+}
+
+.alert-score {
+  display: grid;
+  gap: 5px;
+  justify-items: start;
+}
+
+.alert-score strong {
+  font-size: 12px;
+}
+
+.premium-risk-modal {
+  width: min(560px, 92vw);
+}
+
+.risk-modal-route {
+  color: #93a5bd !important;
+}
+
+.risk-modal-description {
+  margin-bottom: 14px;
+  padding: 12px;
+  border: 1px solid #203954;
+  border-radius: 10px;
+  background: #0a1a2c;
+}
+
+.risk-modal-description b {
+  font-size: 10px;
+}
+
+.risk-modal-description p {
+  margin: 5px 0 0;
+  color: #8fa1b9;
+  font-size: 9.5px;
+  line-height: 1.55;
+}
+
+.risk-modal-actions {
+  display: flex;
+  justify-content: flex-end;
+  gap: 9px;
+  margin-top: 16px;
+}
+
+/* =========================================================
+   Model Monitoring — real data only
+   ========================================================= */
+
+.monitoring-champion-strip {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 22px;
+  margin-bottom: 12px;
+}
+
+.champion-strip-copy > span {
+  color: #8c72ff;
+  font-size: 8px;
+  font-weight: 800;
+  letter-spacing: 0.1em;
+}
+
+.champion-strip-copy h2 {
+  margin: 4px 0 2px;
+  font-size: 17px;
+}
+
+.champion-strip-copy p {
+  margin: 0;
+  color: #7f93ac;
+  font-size: 9px;
+}
+
+.champion-strip-stats {
+  display: flex;
+  align-items: stretch;
+  gap: 8px;
+}
+
+.champion-strip-stats > div {
+  min-width: 112px;
+  padding: 9px 11px;
+  border: 1px solid #203955;
+  border-radius: 9px;
+  background: #091a2c;
+}
+
+.champion-strip-stats span {
+  display: block;
+  color: #70859f;
+  font-size: 8px;
+}
+
+.champion-strip-stats b {
+  display: block;
+  margin-top: 4px;
+  color: #edf4ff;
+  font-size: 11px;
+}
+
+.monitoring-grid {
+  align-items: stretch;
+}
+
+.monitoring-chart-v2 {
+  display: grid;
+  grid-template-columns: 110px 1fr;
+  align-items: center;
+  gap: 16px;
+  min-height: 220px;
+}
+
+.monitoring-current span {
+  display: block;
+  color: #7e91aa;
+  font-size: 9px;
+}
+
+.monitoring-current strong {
+  display: block;
+  margin-top: 7px;
+  font-size: 27px;
+}
+
+.monitoring-empty {
+  min-height: 210px;
+  display: grid;
+  place-content: center;
+  justify-items: center;
+  gap: 7px;
+  text-align: center;
+  color: #71849e;
+}
+
+.monitoring-empty b {
+  color: #dae5f4;
+  font-size: 11px;
+}
+
+.monitoring-empty p {
+  max-width: 360px;
+  margin: 0;
+  font-size: 9px;
+  line-height: 1.5;
+}
+
+.monitoring-signal-list {
+  display: grid;
+}
+
+.monitoring-signal-list > div {
+  display: flex;
+  justify-content: space-between;
+  gap: 16px;
+  padding: 11px 0;
+  border-top: 1px solid #1d334c;
+}
+
+.monitoring-signal-list > div:first-child {
+  border-top: 0;
+}
+
+.monitoring-signal-list span {
+  color: #8295ae;
+  font-size: 9px;
+}
+
+.monitoring-signal-list b {
+  font-size: 10px;
+}
+
+.signal-ok {
+  color: #58dfa5;
+}
+
+.signal-warn {
+  color: #ffba56;
+}
+
+.signal-neutral {
+  color: #9aaac0;
+}
+
+.monitoring-note {
+  margin: 10px 0 0;
+  color: #73879f;
+  font-size: 9px;
+  line-height: 1.55;
+}
+
+/* =========================================================
+   Retraining — visible queue action
+   ========================================================= */
+
+.retraining-success {
+  display: grid;
+  grid-template-columns: 24px 1fr;
+  gap: 8px;
+  margin-top: 12px;
+  padding: 10px 11px;
+  border: 1px solid rgba(68, 210, 149, 0.26);
+  border-radius: 9px;
+  background: rgba(44, 174, 122, 0.08);
+  color: #62dba6;
+}
+
+.retraining-success b {
+  font-size: 10px;
+}
+
+.retraining-success p {
+  margin: 3px 0 0;
+  color: #8aa2b7;
+  font-size: 9px;
+  line-height: 1.45;
+}
+
+.retraining-job-row.just-queued {
+  background: rgba(104, 76, 222, 0.09);
+  animation: queuedHighlight 1.2s ease-in-out 2;
+}
+
+.retraining-job-row small {
+  display: block;
+  margin-top: 3px;
+  color: #9a83ff;
+  font-size: 8px;
+}
+
+@keyframes queuedHighlight {
+  0%, 100% {
+    box-shadow: inset 0 0 0 1px transparent;
+  }
+  50% {
+    box-shadow: inset 0 0 0 1px rgba(136, 104, 255, 0.48);
+  }
+}
+
+/* =========================================================
+   Event map coverage
+   ========================================================= */
+
+.map-coverage-note {
+  display: flex;
+  align-items: center;
+  gap: 7px;
+  margin-top: 9px;
+  padding: 8px 10px;
+  border: 1px solid #263c58;
+  border-radius: 8px;
+  color: #8195ae;
+  background: #091827;
+  font-size: 9px;
+}
+
+@media (max-width: 1180px) {
+  .metrics.five {
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+  }
+
+  .monitoring-champion-strip {
+    align-items: flex-start;
+    flex-direction: column;
+  }
+
+  .champion-strip-stats {
+    width: 100%;
+    flex-wrap: wrap;
+  }
+
+  .champion-strip-stats > div {
+    flex: 1 1 140px;
+  }
+}
+
+@media (max-width: 860px) {
+  .metrics.five {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+
+  .premium-alert-row {
+    grid-template-columns: 34px minmax(0, 1fr) 90px;
+  }
+
+  .premium-alert-row > button {
+    grid-column: 2 / -1;
+    justify-self: start;
+  }
+
+  .monitoring-chart-v2 {
+    grid-template-columns: 1fr;
+  }
+}
