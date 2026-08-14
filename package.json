@@ -3,6 +3,10 @@
     "@langchain/core": "^1.2.6",
     "@langchain/langgraph": "^1.4.9",
     "@langchain/openai": "^1.5.7",
+    "leaflet": "^1.9.4",
     "zod": "^4.4.3"
+  },
+  "devDependencies": {
+    "@types/leaflet": "^1.9.22"
   }
 }

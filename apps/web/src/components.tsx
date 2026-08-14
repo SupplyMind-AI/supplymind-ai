@@ -1,12 +1,11 @@
 import type { ReactNode } from "react";
 import { motion } from "framer-motion";
 import {
-  Activity,
   AlertTriangle,
   ArrowUpRight,
   CheckCircle2,
   ChevronRight,
-  Clock3,
+  LoaderCircle,
   Sparkles,
 } from "lucide-react";
 
@@ -43,9 +42,9 @@ export function Card({
   return (
     <motion.section
       className={`card ${className}`}
-      initial={{ opacity: 0, y: 8 }}
-      animate={{ opacity: 1, y: 0 }}
-      transition={{ duration: 0.28 }}
+      initial={{ opacity: 0, y: 10, scale: 0.995 }}
+      animate={{ opacity: 1, y: 0, scale: 1 }}
+      transition={{ duration: 0.3, ease: [0.16, 1, 0.3, 1] }}
     >
       {children}
     </motion.section>
@@ -80,14 +79,6 @@ export function Metric({
 export function RiskBadge({ level }: { level: string }) {
   const normalized = String(level || "low").toLowerCase();
   return <span className={`badge ${normalized}`}>{normalized}</span>;
-}
-
-export function Empty({
-  children,
-}: {
-  children: ReactNode;
-}) {
-  return <div className="empty">{children}</div>;
 }
 
 export function SectionTitle({
@@ -128,33 +119,55 @@ export function StatusLine({
   );
 }
 
-export function MiniTrend({
-  values,
-}: {
-  values: number[];
-}) {
-  if (!values.length) return null;
-  const max = Math.max(...values);
-  const min = Math.min(...values);
-  const points = values
-    .map((v, index) => {
-      const x = (index / Math.max(values.length - 1, 1)) * 100;
-      const y =
-        36 -
-        ((v - min) / Math.max(max - min, 1)) * 30;
-      return `${x},${y}`;
-    })
-    .join(" ");
-
+export function LoadingDots({ label = "Loading" }: { label?: string }) {
   return (
-    <svg
-      className="mini-trend"
-      viewBox="0 0 100 40"
-      preserveAspectRatio="none"
-      aria-hidden
+    <span className="loading-dots" aria-label={label}>
+      <span />
+      <span />
+      <span />
+    </span>
+  );
+}
+
+export function AsyncButton({
+  loading,
+  children,
+  className = "primary",
+  loadingText = "Working",
+  ...props
+}: {
+  loading: boolean;
+  children: ReactNode;
+  className?: string;
+  loadingText?: string;
+} & React.ButtonHTMLAttributes<HTMLButtonElement>) {
+  return (
+    <button
+      {...props}
+      className={`${className} ${loading ? "button-busy" : ""}`}
+      disabled={loading || props.disabled}
     >
-      <polyline points={points} fill="none" />
-    </svg>
+      {loading ? (
+        <>
+          <span className="orbit-loader">
+            <i />
+            <i />
+            <i />
+          </span>
+          <span>{loadingText}</span>
+        </>
+      ) : (
+        children
+      )}
+    </button>
+  );
+}
+
+export function ScreenProgress({ visible }: { visible: boolean }) {
+  return (
+    <div className={`screen-progress ${visible ? "visible" : ""}`}>
+      <span />
+    </div>
   );
 }
 
@@ -168,11 +181,17 @@ export function RiskGauge({
     pct >= 70 ? "high" : pct >= 40 ? "medium" : "low";
 
   return (
-    <div className={`risk-gauge ${level}`}>
+    <motion.div
+      className={`risk-gauge ${level}`}
+      initial={{ opacity: 0, scale: 0.88 }}
+      animate={{ opacity: 1, scale: 1 }}
+      transition={{ type: "spring", stiffness: 180, damping: 16 }}
+      whileHover={{ scale: 1.04 }}
+    >
       <div
         className="risk-gauge-ring"
         style={{
-          background: `conic-gradient(var(--gauge) ${pct * 3.6}deg, rgba(255,255,255,.06) 0deg)`,
+          background: `conic-gradient(var(--gauge) ${pct * 3.6}deg, rgba(255,255,255,.07) 0deg)`,
         }}
       >
         <div className="risk-gauge-inner">
@@ -181,63 +200,186 @@ export function RiskGauge({
         </div>
       </div>
       <RiskBadge level={level} />
+    </motion.div>
+  );
+}
+
+export function MiniTrend({
+  values,
+  labels,
+}: {
+  values: number[];
+  labels?: string[];
+}) {
+  if (!values.length) return null;
+
+  const max = Math.max(...values);
+  const min = Math.min(...values);
+  const points = values
+    .map((v, index) => {
+      const x = (index / Math.max(values.length - 1, 1)) * 100;
+      const y =
+        90 -
+        ((v - min) / Math.max(max - min, 1)) * 70;
+      return `${x},${y}`;
+    })
+    .join(" ");
+
+  return (
+    <div className="hover-chart">
+      <svg
+        className="mini-trend"
+        viewBox="0 0 100 100"
+        preserveAspectRatio="none"
+        aria-hidden
+      >
+        <defs>
+          <linearGradient id="areaGradient" x1="0" x2="0" y1="0" y2="1">
+            <stop offset="0%" stopColor="#8b63ff" stopOpacity=".45" />
+            <stop offset="100%" stopColor="#8b63ff" stopOpacity="0" />
+          </linearGradient>
+        </defs>
+        <polygon
+          points={`0,100 ${points} 100,100`}
+          fill="url(#areaGradient)"
+        />
+        <polyline points={points} fill="none" />
+      </svg>
+
+      <div className="chart-hover-points">
+        {values.map((value, index) => {
+          const x = (index / Math.max(values.length - 1, 1)) * 100;
+          const y =
+            90 -
+            ((value - min) / Math.max(max - min, 1)) * 70;
+          return (
+            <motion.div
+              key={`${value}-${index}`}
+              className="chart-point"
+              style={{ left: `${x}%`, top: `${y}%` }}
+              whileHover={{ scale: 1.55 }}
+            >
+              <span className="chart-tooltip">
+                <b>{value.toFixed(1)}%</b>
+                <small>{labels?.[index] ?? `Point ${index + 1}`}</small>
+              </span>
+            </motion.div>
+          );
+        })}
+      </div>
     </div>
   );
 }
 
-export function ToolActivity({
-  steps,
-  elapsed,
-  active,
+export function DonutChart({
+  segments,
+  centerLabel,
+  centerValue,
 }: {
-  steps: {
+  segments: Array<{
     label: string;
-    detail: string;
-    state: "waiting" | "active" | "done";
-  }[];
-  elapsed: number;
-  active: boolean;
+    value: number;
+    tone: "high" | "medium" | "low";
+  }>;
+  centerLabel: string;
+  centerValue: string | number;
 }) {
-  return (
-    <Card className="tool-activity">
-      <div className="activity-head">
-        <div>
-          <span className="activity-kicker">
-            <Sparkles size={13} />
-            SupplyMind reasoning trace
-          </span>
-          <h3>
-            {active ? "Investigating your request" : "Investigation complete"}
-          </h3>
-        </div>
-        <span className="elapsed">
-          <Clock3 size={13} /> {elapsed.toFixed(1)}s
-        </span>
-      </div>
+  const total = Math.max(
+    1,
+    segments.reduce((sum, segment) => sum + segment.value, 0),
+  );
+  const colors = {
+    high: "#ff5f7d",
+    medium: "#ffb94a",
+    low: "#3ddb94",
+  };
 
-      <div className="activity-steps">
-        {steps.map((step) => (
-          <div
-            key={step.label}
-            className={`activity-step ${step.state}`}
+  let cursor = 0;
+  const stops: string[] = [];
+  for (const segment of segments) {
+    const start = cursor;
+    cursor += (segment.value / total) * 100;
+    stops.push(
+      `${colors[segment.tone]} ${start}% ${Math.max(start, cursor)}%`,
+    );
+  }
+
+  return (
+    <div className="donut-wrap">
+      <motion.div
+        className="risk-donut interactive-donut"
+        style={{
+          background: `conic-gradient(${stops.join(",")})`,
+        }}
+        initial={{ rotate: -80, scale: 0.82, opacity: 0 }}
+        animate={{ rotate: 0, scale: 1, opacity: 1 }}
+        transition={{ duration: 0.65, ease: [0.16, 1, 0.3, 1] }}
+        whileHover={{ scale: 1.045 }}
+      >
+        <div>
+          <strong>{centerValue}</strong>
+          <span>{centerLabel}</span>
+        </div>
+      </motion.div>
+
+      <div className="donut-legend">
+        {segments.map((segment) => (
+          <motion.div
+            key={segment.label}
+            className="donut-legend-row"
+            whileHover={{ x: 4 }}
           >
-            <div className="activity-node">
-              {step.state === "done" ? (
-                <CheckCircle2 size={16} />
-              ) : step.state === "active" ? (
-                <Activity size={16} />
-              ) : (
-                <ChevronRight size={16} />
-              )}
-            </div>
-            <div>
-              <b>{step.label}</b>
-              <small>{step.detail}</small>
-            </div>
-          </div>
+            <i className={segment.tone} />
+            <span>{segment.label}</span>
+            <b>{segment.value}</b>
+            <small>
+              {((segment.value / total) * 100).toFixed(0)}%
+            </small>
+          </motion.div>
         ))}
       </div>
-    </Card>
+    </div>
+  );
+}
+
+export function BarChart({
+  rows,
+}: {
+  rows: Array<{
+    label: string;
+    value: number;
+    note?: string;
+  }>;
+}) {
+  const max = Math.max(1, ...rows.map((row) => row.value));
+
+  return (
+    <div className="bar-chart">
+      {rows.map((row) => (
+        <motion.div
+          key={row.label}
+          className="bar-row"
+          whileHover={{ x: 3 }}
+        >
+          <div className="bar-label">
+            <span>{row.label}</span>
+            <b>{row.value.toFixed(1)}%</b>
+          </div>
+          <div className="bar-track">
+            <motion.div
+              className="bar-fill"
+              initial={{ width: 0 }}
+              animate={{ width: `${(row.value / max) * 100}%` }}
+              transition={{ duration: 0.65, ease: [0.16, 1, 0.3, 1] }}
+            >
+              <span className="bar-tooltip">
+                {row.note ?? `${row.value.toFixed(1)}%`}
+              </span>
+            </motion.div>
+          </div>
+        </motion.div>
+      ))}
+    </div>
   );
 }
 
@@ -251,17 +393,159 @@ export function InsightRow({
   tone?: "default" | "danger" | "warning" | "success";
 }) {
   return (
-    <div className={`insight-row ${tone}`}>
+    <motion.div
+      className={`insight-row ${tone}`}
+      whileHover={{ x: 4 }}
+    >
       <div className="insight-icon">
         {tone === "danger" ? (
-          <AlertTriangle size={15} />
+          <AlertTriangle size={16} />
         ) : (
-          <ArrowUpRight size={15} />
+          <ArrowUpRight size={16} />
         )}
       </div>
       <div>
         <b>{title}</b>
         <p>{description}</p>
+      </div>
+    </motion.div>
+  );
+}
+
+export function ClaudeTrace({
+  visible,
+  steps,
+  elapsed,
+}: {
+  visible: boolean;
+  steps: Array<{
+    label: string;
+    detail: string;
+    state: "waiting" | "active" | "done";
+  }>;
+  elapsed: number;
+}) {
+  if (!visible && !steps.some((step) => step.state === "done")) {
+    return null;
+  }
+
+  return (
+    <motion.div
+      className="claude-trace"
+      initial={{ opacity: 0, y: 8 }}
+      animate={{ opacity: 1, y: 0 }}
+    >
+      <div className="claude-trace-head">
+        <div className="claude-orb">
+          <Sparkles size={14} />
+          <span />
+        </div>
+        <div>
+          <b>{visible ? "Working through your request" : "Reasoning complete"}</b>
+          <small>{elapsed.toFixed(1)}s</small>
+        </div>
+      </div>
+
+      <div className="claude-trace-body">
+        {steps.map((step) => (
+          <motion.div
+            className={`claude-trace-step ${step.state}`}
+            key={step.label}
+            animate={
+              step.state === "active"
+                ? { opacity: [0.45, 1, 0.45] }
+                : { opacity: 1 }
+            }
+            transition={
+              step.state === "active"
+                ? { duration: 1.2, repeat: Infinity }
+                : undefined
+            }
+          >
+            <span className="trace-symbol">
+              {step.state === "done" ? (
+                <CheckCircle2 size={14} />
+              ) : step.state === "active" ? (
+                <LoaderCircle size={14} />
+              ) : (
+                <ChevronRight size={14} />
+              )}
+            </span>
+            <div>
+              <b>{step.label}</b>
+              <small>{step.detail}</small>
+            </div>
+          </motion.div>
+        ))}
+      </div>
+    </motion.div>
+  );
+}
+
+export function HighRiskRecommendations({
+  probability,
+  drivers = [],
+}: {
+  probability: number;
+  drivers?: string[];
+}) {
+  if (probability < 0.7) return null;
+
+  const steps = [
+    {
+      title: "Validate the disruption context",
+      detail:
+        "Check weather and external-event evidence for the route before escalating.",
+    },
+    {
+      title: "Protect the delivery promise",
+      detail:
+        "Review alternate carrier/service options and add operational buffer where possible.",
+    },
+    {
+      title: "Notify the responsible owner",
+      detail:
+        "Create a risk alert and assign the shipment for active monitoring.",
+    },
+    {
+      title: "Prepare customer communication",
+      detail:
+        "If the risk remains high, proactively communicate the potential delay and next update window.",
+    },
+  ];
+
+  return (
+    <div className="recommendation-panel">
+      <div className="recommendation-head">
+        <div className="recommendation-icon">
+          <Sparkles size={17} />
+        </div>
+        <div>
+          <span>HIGH-RISK PLAYBOOK</span>
+          <h3>Recommended next actions</h3>
+          <p>
+            Prioritized actions based on the current prediction
+            {drivers.length ? ` and ${drivers.length} identified drivers` : ""}.
+          </p>
+        </div>
+      </div>
+
+      <div className="recommendation-steps">
+        {steps.map((step, index) => (
+          <motion.div
+            key={step.title}
+            className="recommendation-step"
+            initial={{ opacity: 0, x: -10 }}
+            animate={{ opacity: 1, x: 0 }}
+            transition={{ delay: index * 0.08 }}
+          >
+            <span>{index + 1}</span>
+            <div>
+              <b>{step.title}</b>
+              <small>{step.detail}</small>
+            </div>
+          </motion.div>
+        ))}
       </div>
     </div>
   );

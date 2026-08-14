@@ -15,8 +15,10 @@ import {
 } from "lucide-react";
 import { api } from "../api";
 import {
+  AsyncButton,
   Card,
   Header,
+  HighRiskRecommendations,
   InsightRow,
   RiskGauge,
   SectionTitle,
@@ -149,6 +151,7 @@ export default function Prediction({
     event.preventDefault();
     setLoading(true);
     setError("");
+    setResult(null);
 
     try {
       const response = await api<any>("/predictions", {
@@ -278,14 +281,14 @@ export default function Prediction({
           className={mode === "single" ? "active" : ""}
           onClick={() => setMode("single")}
         >
-          <PackagePlus size={16} />
+          <PackagePlus size={17} />
           Single parcel
         </button>
         <button
           className={mode === "csv" ? "active" : ""}
           onClick={() => setMode("csv")}
         >
-          <FileSpreadsheet size={16} />
+          <FileSpreadsheet size={17} />
           CSV batch
         </button>
       </div>
@@ -441,19 +444,41 @@ export default function Prediction({
                 </div>
               </details>
 
-              <button className="primary full" disabled={loading}>
-                <WandSparkles size={16} />
-                {loading ? "Scoring parcel…" : "Predict delay risk"}
-              </button>
+              <AsyncButton
+                loading={loading}
+                loadingText="Scoring parcel"
+                className="primary full"
+                type="submit"
+              >
+                <WandSparkles size={17} />
+                Predict delay risk
+              </AsyncButton>
 
               {error && <div className="error">{error}</div>}
             </form>
           </Card>
 
           <Card className="prediction-result">
-            {!result ? (
+            {loading ? (
+              <div className="prediction-loading">
+                <div className="prediction-orbit">
+                  <span />
+                  <span />
+                  <span />
+                  <Sparkles size={25} />
+                </div>
+                <b>Scoring shipment</b>
+                <p>
+                  Applying feature engineering and the active champion
+                  pipeline…
+                </p>
+                <div className="prediction-loading-bar">
+                  <span />
+                </div>
+              </div>
+            ) : !result ? (
               <div className="empty-state">
-                <Sparkles size={44} />
+                <Sparkles size={45} />
                 <b>No prediction yet</b>
                 <p>
                   Complete the parcel details and run the champion
@@ -483,9 +508,7 @@ export default function Prediction({
                         ? "DELAY LIKELY"
                         : "ON TRACK"}
                     </span>
-                    <h2>
-                      {form.external_id}
-                    </h2>
+                    <h2>{form.external_id}</h2>
                     <p>{explanation}</p>
                   </div>
                 </div>
@@ -500,16 +523,10 @@ export default function Prediction({
                   ))}
                 </div>
 
-                <div className="recommendation-box">
-                  <Sparkles size={17} />
-                  <div>
-                    <b>Recommended action</b>
-                    <p>
-                      Review route disruption and weather context in
-                      the AI Assistant before escalating this shipment.
-                    </p>
-                  </div>
-                </div>
+                <HighRiskRecommendations
+                  probability={probability}
+                  drivers={riskDrivers.map((driver) => driver.title)}
+                />
               </>
             )}
           </Card>
@@ -529,7 +546,7 @@ export default function Prediction({
               className="csv-drop"
               onClick={() => fileRef.current?.click()}
             >
-              <CloudUpload size={34} />
+              <CloudUpload size={36} />
               <b>Drop operational CSV here</b>
               <p>
                 Or click to choose a file. Existing shipment schema
@@ -543,18 +560,23 @@ export default function Prediction({
             {csvRows.length > 0 && (
               <div className="csv-summary">
                 <span>
-                  <CheckCircle2 size={15} /> {csvRows.length} rows
+                  <CheckCircle2 size={16} /> {csvRows.length} rows
                   validated
                 </span>
-                <button
+                <AsyncButton
+                  loading={loading}
+                  loadingText={`Scoring ${batchProgress}%`}
                   className="primary"
                   onClick={runBatch}
-                  disabled={loading}
                 >
-                  {loading
-                    ? `Scoring ${batchProgress}%`
-                    : "Run batch prediction"}
-                </button>
+                  Run batch prediction
+                </AsyncButton>
+              </div>
+            )}
+
+            {loading && csvRows.length > 0 && (
+              <div className="batch-progress">
+                <span style={{ width: `${batchProgress}%` }} />
               </div>
             )}
           </Card>

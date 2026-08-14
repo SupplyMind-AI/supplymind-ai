@@ -15,9 +15,10 @@ import {
 } from "lucide-react";
 import { api } from "../api";
 import {
+  AsyncButton,
   Card,
+  ClaudeTrace,
   Header,
-  ToolActivity,
 } from "../components";
 
 type ChatMessage = {
@@ -37,23 +38,23 @@ const suggestions = [
 
 const activityTemplates = [
   {
-    label: "Understanding request",
-    detail: "Classifying the investigation and required evidence.",
+    label: "Understanding the request",
+    detail: "Classifying intent and required evidence.",
   },
   {
-    label: "Loading operational context",
-    detail: "Checking shipment and saved prediction data.",
+    label: "Reading shipment context",
+    detail: "Checking saved shipment and prediction data.",
   },
   {
     label: "Checking external intelligence",
-    detail: "Reviewing weather and disruption context when relevant.",
+    detail: "Looking for route weather and disruption evidence.",
   },
   {
     label: "Searching enterprise knowledge",
-    detail: "Retrieving semantically relevant policies and documents.",
+    detail: "Retrieving relevant policies and operating procedures.",
   },
   {
-    label: "Synthesizing grounded answer",
+    label: "Synthesizing the answer",
     detail: "Combining evidence into an operational recommendation.",
   },
 ];
@@ -80,16 +81,15 @@ export default function Assistant() {
     if (!loading) return;
 
     const start = performance.now();
-
     timerRef.current = window.setInterval(() => {
       const seconds = (performance.now() - start) / 1000;
       setElapsed(seconds);
-
-      const index = Math.min(
-        activityTemplates.length - 1,
-        Math.floor(seconds / 1.1),
+      setStepIndex(
+        Math.min(
+          activityTemplates.length - 1,
+          Math.floor(seconds / 1.05),
+        ),
       );
-      setStepIndex(index);
     }, 100);
 
     return () => {
@@ -120,6 +120,7 @@ export default function Assistant() {
     if (!question.trim() || loading) return;
 
     const currentQuestion = question.trim();
+
     setMessages((current) => [
       ...current,
       {
@@ -188,148 +189,125 @@ export default function Assistant() {
         subtitle="Investigate shipment risk using operational data, ML inference, disruptions and enterprise knowledge."
       />
 
-      <div className="assistant-layout">
-        <div className="assistant-main">
-          <Card className="chat-card">
-            <div className="chat-header">
-              <div>
-                <div className="bot-avatar">
-                  <Bot size={20} />
-                </div>
-                <div>
-                  <b>SupplyMind Intelligence</b>
-                  <span>
-                    <span className="dot" /> LangGraph coordinator online
-                  </span>
-                </div>
-              </div>
-              <span className="model-pill">Grounded AI</span>
+      <Card className="chat-card">
+        <div className="chat-header">
+          <div>
+            <div className="bot-avatar">
+              <Bot size={21} />
             </div>
-
-            <div className="chat-context-bar">
-              <span>Shipment context</span>
-              <input
-                value={shipmentId}
-                onChange={(e) => setShipmentId(e.target.value)}
-                placeholder="Optional shipment ID"
-              />
+            <div>
+              <b>SupplyMind Intelligence</b>
+              <span>
+                <span className="dot" /> LangGraph coordinator online
+              </span>
             </div>
-
-            <div className="chat-messages">
-              {messages.map((message) => (
-                <div
-                  className={`chat-message ${message.role}`}
-                  key={message.id}
-                >
-                  <div className="chat-avatar">
-                    {message.role === "assistant" ? (
-                      <Sparkles size={16} />
-                    ) : (
-                      <UserRound size={16} />
-                    )}
-                  </div>
-                  <div className="chat-bubble">
-                    <div className="chat-role">
-                      {message.role === "assistant"
-                        ? "SupplyMind"
-                        : "You"}
-                    </div>
-                    <div className="chat-content">
-                      {message.content}
-                    </div>
-                    {message.confidence && (
-                      <span className="confidence-chip">
-                        Confidence · {message.confidence}
-                      </span>
-                    )}
-                    {message.citations &&
-                      message.citations.length > 0 && (
-                        <div className="source-chips">
-                          {message.citations
-                            .slice(0, 6)
-                            .map((source: any, index: number) => (
-                              <span key={index}>
-                                <CheckCircle2 size={11} />
-                                {source.title ??
-                                  source.name ??
-                                  source.source ??
-                                  `Source ${index + 1}`}
-                              </span>
-                            ))}
-                        </div>
-                      )}
-                  </div>
-                </div>
-              ))}
-
-              {loading && (
-                <div className="chat-message assistant">
-                  <div className="chat-avatar">
-                    <Sparkles size={16} />
-                  </div>
-                  <div className="typing-bubble">
-                    <span />
-                    <span />
-                    <span />
-                  </div>
-                </div>
-              )}
-            </div>
-
-            <div className="suggestions">
-              {suggestions.map((suggestion) => (
-                <button
-                  key={suggestion}
-                  onClick={() => setQuestion(suggestion)}
-                >
-                  {suggestion}
-                </button>
-              ))}
-            </div>
-
-            <form className="chat-composer" onSubmit={submit}>
-              <button type="button" className="composer-icon">
-                <Paperclip size={17} />
-              </button>
-              <textarea
-                value={question}
-                onChange={(e) => setQuestion(e.target.value)}
-                placeholder="Ask SupplyMind about shipments, risk, disruptions or policies…"
-                rows={2}
-              />
-              <button
-                className="send-button"
-                type="submit"
-                disabled={loading}
-              >
-                <Send size={17} />
-              </button>
-            </form>
-          </Card>
+          </div>
+          <span className="model-pill">Grounded AI</span>
         </div>
 
-        <div className="assistant-side">
-          <ToolActivity
-            steps={steps}
-            elapsed={elapsed}
-            active={loading}
+        <div className="chat-context-bar">
+          <span>Shipment context</span>
+          <input
+            value={shipmentId}
+            onChange={(e) => setShipmentId(e.target.value)}
+            placeholder="Optional shipment ID"
           />
+        </div>
 
-          <Card>
-            <div className="assistant-side-note">
-              <Sparkles size={18} />
-              <div>
-                <b>Evidence-first answers</b>
-                <p>
-                  Responses are designed to combine saved shipment data,
-                  predictions, weather, external events and retrieved
-                  enterprise knowledge.
-                </p>
+        <div className="chat-messages">
+          {messages.map((message) => (
+            <div
+              className={`chat-message ${message.role}`}
+              key={message.id}
+            >
+              <div className="chat-avatar">
+                {message.role === "assistant" ? (
+                  <Sparkles size={17} />
+                ) : (
+                  <UserRound size={17} />
+                )}
+              </div>
+              <div className="chat-bubble">
+                <div className="chat-role">
+                  {message.role === "assistant"
+                    ? "SupplyMind"
+                    : "You"}
+                </div>
+                <div className="chat-content">
+                  {message.content}
+                </div>
+                {message.confidence && (
+                  <span className="confidence-chip">
+                    Confidence · {message.confidence}
+                  </span>
+                )}
+                {message.citations &&
+                  message.citations.length > 0 && (
+                    <div className="source-chips">
+                      {message.citations
+                        .slice(0, 6)
+                        .map((source: any, index: number) => (
+                          <span key={index}>
+                            <CheckCircle2 size={12} />
+                            {source.title ??
+                              source.name ??
+                              source.source ??
+                              `Source ${index + 1}`}
+                          </span>
+                        ))}
+                    </div>
+                  )}
               </div>
             </div>
-          </Card>
+          ))}
+
+          {loading && (
+            <ClaudeTrace
+              visible={loading}
+              steps={steps}
+              elapsed={elapsed}
+            />
+          )}
         </div>
-      </div>
+
+        <div className="suggestions">
+          {suggestions.map((suggestion) => (
+            <button
+              key={suggestion}
+              onClick={() => setQuestion(suggestion)}
+            >
+              {suggestion}
+            </button>
+          ))}
+        </div>
+
+        <form className="chat-composer" onSubmit={submit}>
+          <button type="button" className="composer-icon">
+            <Paperclip size={18} />
+          </button>
+          <textarea
+            value={question}
+            onChange={(e) => setQuestion(e.target.value)}
+            placeholder="Ask SupplyMind about shipments, risk, disruptions or policies…"
+            rows={2}
+          />
+          <button
+            className="send-button"
+            type="submit"
+            disabled={loading}
+          >
+            {loading ? <span className="send-loader" /> : <Send size={18} />}
+          </button>
+        </form>
+
+        <div className="assistant-evidence-note">
+          <Sparkles size={16} />
+          <span>
+            Evidence-first answers combine shipment data, predictions,
+            external intelligence and retrieved enterprise knowledge.
+          </span>
+        </div>
+      </Card>
     </>
   );
 }

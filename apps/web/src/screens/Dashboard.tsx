@@ -8,9 +8,11 @@ import {
   ShieldCheck,
   Sparkles,
 } from "lucide-react";
-import { api, safeApi } from "../api";
+import { safeApi } from "../api";
 import {
+  BarChart,
   Card,
+  DonutChart,
   Header,
   InsightRow,
   Metric,
@@ -140,6 +142,40 @@ export default function Dashboard({
     )
     .slice(0, 4);
 
+  const modeGroups = useMemo(() => {
+    const grouped: Record<string, number[]> = {};
+
+    for (const prediction of predictions) {
+      const mode = prediction.shipping_mode ?? "Unknown";
+      const probability =
+        Number(prediction.delay_probability ?? prediction.probability ?? 0) *
+        100;
+
+      grouped[mode] ??= [];
+      grouped[mode].push(probability);
+    }
+
+    const rows = Object.entries(grouped)
+      .map(([label, values]) => ({
+        label,
+        value:
+          values.reduce((sum, value) => sum + value, 0) /
+          Math.max(values.length, 1),
+        note: `${values.length} shipment${values.length === 1 ? "" : "s"}`,
+      }))
+      .sort((a, b) => b.value - a.value)
+      .slice(0, 5);
+
+    return rows.length
+      ? rows
+      : [
+          { label: "Standard Class", value: 64, note: "Typical demo exposure" },
+          { label: "Second Class", value: 55, note: "Typical demo exposure" },
+          { label: "First Class", value: 42, note: "Typical demo exposure" },
+          { label: "Same Day", value: 31, note: "Typical demo exposure" },
+        ];
+  }, [predictions]);
+
   return (
     <>
       <Header
@@ -151,7 +187,7 @@ export default function Dashboard({
             className="primary"
             onClick={() => onNavigate("assistant")}
           >
-            <Sparkles size={15} />
+            <Sparkles size={16} />
             Investigate with AI
           </button>
         }
@@ -162,28 +198,28 @@ export default function Dashboard({
           label="Total Shipments"
           value={loading ? "—" : totalShipments}
           delta="Operational records"
-          icon={<PackageSearch size={17} />}
+          icon={<PackageSearch size={18} />}
         />
         <Metric
           label="Predicted Delays"
           value={loading ? "—" : delayed}
           delta={`${highRisk} high-risk`}
           tone="danger"
-          icon={<AlertTriangle size={17} />}
+          icon={<AlertTriangle size={18} />}
         />
         <Metric
           label="On-time Rate"
           value={loading ? "—" : `${Number(onTimeRate).toFixed(1)}%`}
           delta="Current portfolio"
           tone="success"
-          icon={<PackageCheck size={17} />}
+          icon={<PackageCheck size={18} />}
         />
         <Metric
           label="Average Risk"
           value={loading ? "—" : `${(Number(avgRisk) * 100).toFixed(1)}%`}
           delta="Champion score"
           tone="warning"
-          icon={<Activity size={17} />}
+          icon={<Activity size={18} />}
         />
       </div>
 
@@ -194,8 +230,8 @@ export default function Dashboard({
             subtitle="Latest scored shipments"
             action={<span className="live-chip">LIVE</span>}
           />
-          <div className="trend-big">
-            <div>
+          <div className="trend-big-v2">
+            <div className="trend-number">
               <span>Average predicted risk</span>
               <strong>{(Number(avgRisk) * 100).toFixed(1)}%</strong>
               <small>Updated from persisted predictions</small>
@@ -218,49 +254,22 @@ export default function Dashboard({
             title="Risk Distribution"
             subtitle="Portfolio exposure"
           />
-          <div className="risk-distribution">
-            <div
-              className="risk-donut"
-              style={{
-                background: `conic-gradient(
-                  #ff5f7f 0 ${Math.max(
-                    1,
-                    (riskCounts.high /
-                      Math.max(predictions.length, 1)) *
-                      100,
-                  )}%,
-                  #ffb74d 0 ${Math.max(
-                    2,
-                    ((riskCounts.high + riskCounts.medium) /
-                      Math.max(predictions.length, 1)) *
-                      100,
-                  )}%,
-                  #38d996 0
-                )`,
-              }}
-            >
-              <div>
-                <strong>{predictions.length}</strong>
-                <span>scored</span>
-              </div>
-            </div>
-
-            <div className="risk-list">
-              {(["high", "medium", "low"] as const).map((level) => (
-                <div key={level}>
-                  <RiskBadge level={level} />
-                  <strong>{riskCounts[level]}</strong>
-                </div>
-              ))}
-            </div>
-          </div>
+          <DonutChart
+            centerLabel="scored"
+            centerValue={predictions.length}
+            segments={[
+              { label: "High", value: riskCounts.high, tone: "high" },
+              { label: "Medium", value: riskCounts.medium, tone: "medium" },
+              { label: "Low", value: riskCounts.low, tone: "low" },
+            ]}
+          />
         </Card>
 
         <Card className="ai-brief-card">
           <SectionTitle
             title="AI Operations Brief"
             subtitle="What deserves attention now"
-            action={<BrainCircuit size={18} />}
+            action={<BrainCircuit size={19} />}
           />
           <InsightRow
             tone={highRisk ? "danger" : "success"}
@@ -283,7 +292,15 @@ export default function Dashboard({
         </Card>
       </div>
 
-      <div className="grid2">
+      <div className="grid2 dashboard-chart-row">
+        <Card>
+          <SectionTitle
+            title="Risk by shipping mode"
+            subtitle="Average delay probability by service level"
+          />
+          <BarChart rows={modeGroups} />
+        </Card>
+
         <Card>
           <SectionTitle
             title="Highest-risk shipments"
@@ -353,7 +370,9 @@ export default function Dashboard({
             )}
           </div>
         </Card>
+      </div>
 
+      <div className="grid2">
         <Card>
           <SectionTitle
             title="Disruption Radar"
@@ -400,23 +419,23 @@ export default function Dashboard({
             )}
           </div>
         </Card>
-      </div>
 
-      <Card className="system-strip">
-        <div>
-          <ShieldCheck size={18} />
-          <span>
-            <b>Production architecture</b>
-            React · FastAPI · PostgreSQL · Pinecone · LangGraph
-          </span>
-        </div>
-        <button
-          className="secondary-inline"
-          onClick={() => onNavigate("settings")}
-        >
-          View integrations
-        </button>
-      </Card>
+        <Card className="system-strip-card">
+          <SectionTitle
+            title="Production architecture"
+            subtitle="Operational V1 deployment topology"
+            action={<ShieldCheck size={19} />}
+          />
+          <div className="architecture-mini-grid">
+            <span>React / Vercel</span>
+            <span>FastAPI / Render</span>
+            <span>PostgreSQL</span>
+            <span>Pinecone</span>
+            <span>LangGraph</span>
+            <span>External Intelligence</span>
+          </div>
+        </Card>
+      </div>
     </>
   );
 }

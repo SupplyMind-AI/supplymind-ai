@@ -1,13 +1,10 @@
-import { useMemo, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { AnimatePresence, motion } from "framer-motion";
 import {
-  Activity,
   AlertTriangle,
   BarChart3,
   Bot,
-  Boxes,
   BrainCircuit,
-  DatabaseZap,
   FileBarChart2,
   Gauge,
   Globe2,
@@ -16,9 +13,9 @@ import {
   Search,
   Settings,
   Sparkles,
-  UploadCloud,
 } from "lucide-react";
 
+import { ScreenProgress } from "./components";
 import Dashboard from "./screens/Dashboard";
 import Assistant from "./screens/Assistant";
 import Prediction from "./screens/Prediction";
@@ -75,17 +72,27 @@ const groups = [
 
 export default function App() {
   const [screen, setScreen] = useState<Screen>("dashboard");
+  const [transitioning, setTransitioning] = useState(false);
+
+  const navigate = (next: Screen) => {
+    if (next === screen) return;
+    setTransitioning(true);
+    window.setTimeout(() => {
+      setScreen(next);
+      window.setTimeout(() => setTransitioning(false), 360);
+    }, 120);
+  };
 
   const content = useMemo(() => {
     switch (screen) {
       case "dashboard":
-        return <Dashboard onNavigate={setScreen} />;
+        return <Dashboard onNavigate={navigate} />;
       case "assistant":
         return <Assistant />;
       case "prediction":
-        return <Prediction onAsk={() => setScreen("assistant")} />;
+        return <Prediction onAsk={() => navigate("assistant")} />;
       case "predictions":
-        return <Predictions onOpenIntake={() => setScreen("prediction")} />;
+        return <Predictions onOpenIntake={() => navigate("prediction")} />;
       case "alerts":
         return <Alerts />;
       case "events":
@@ -105,6 +112,8 @@ export default function App() {
 
   return (
     <div className="shell">
+      <ScreenProgress visible={transitioning} />
+
       <aside>
         <div className="brand">
           <div className="brand-mark">
@@ -126,9 +135,10 @@ export default function App() {
                 <button
                   key={id}
                   className={screen === id ? "active" : ""}
-                  onClick={() => setScreen(id)}
+                  onClick={() => navigate(id)}
+                  title={label}
                 >
-                  <Icon size={16} />
+                  <Icon size={17} />
                   <span>{label}</span>
                 </button>
               ))}
@@ -145,7 +155,7 @@ export default function App() {
       <main>
         <div className="topbar">
           <div className="searchbox">
-            <Search size={15} />
+            <Search size={16} />
             <span>Search SupplyMind</span>
             <kbd>⌘ K</kbd>
           </div>
@@ -162,10 +172,10 @@ export default function App() {
           <AnimatePresence mode="wait">
             <motion.div
               key={screen}
-              initial={{ opacity: 0, y: 8 }}
-              animate={{ opacity: 1, y: 0 }}
-              exit={{ opacity: 0, y: -4 }}
-              transition={{ duration: 0.22 }}
+              initial={{ opacity: 0, y: 12, filter: "blur(4px)" }}
+              animate={{ opacity: 1, y: 0, filter: "blur(0px)" }}
+              exit={{ opacity: 0, y: -7, filter: "blur(3px)" }}
+              transition={{ duration: 0.28, ease: [0.16, 1, 0.3, 1] }}
             >
               {content}
             </motion.div>
