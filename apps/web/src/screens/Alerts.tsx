@@ -359,13 +359,24 @@ export default function Alerts() {
                 )}
               </div>
 
-              <button
-                className="secondary-inline"
-                onClick={() => setSelected(alert)}
-              >
-                <Eye size={14} />
-                Review
-              </button>
+              <div className="alert-row-actions">
+                <button
+                  className="secondary-inline"
+                  onClick={() => setSelected(alert)}
+                >
+                  <Eye size={14} />
+                  Review
+                </button>
+                <AsyncButton
+                  loading={savingId === alert.id}
+                  loadingText="Saving"
+                  className="alert-ack-button"
+                  disabled={alert.acknowledged}
+                  onClick={() => acknowledge(alert)}
+                >
+                  {alert.acknowledged ? "Acknowledged" : "Acknowledge"}
+                </AsyncButton>
+              </div>
             </div>
           ))}
 
