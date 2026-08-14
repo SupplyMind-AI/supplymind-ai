@@ -19,9 +19,20 @@ async def lifespan(app:FastAPI):
         if cfg.langsmith_api_key:os.environ["LANGSMITH_API_KEY"]=cfg.langsmith_api_key
     try:
         async with session_scope() as session:
-            await register_champion_if_available(registry=SqlAlchemyModelRegistryRepository(session),model_directory=cfg.champion_model_directory)
+            await register_champion_if_available(
+                registry=SqlAlchemyModelRegistryRepository(session),
+                model_directory=cfg.champion_model_directory,
+            )
+
+        print(
+            "[startup] champion bootstrap completed"
+        )
+
     except Exception as exc:
-        print(f"Champion bootstrap warning: {exc}")
+        print(
+            "[startup] CHAMPION REGISTRATION FAILED: "
+            f"{type(exc).__name__}: {exc}"
+        )
     yield
     await dispose_engine()
 
