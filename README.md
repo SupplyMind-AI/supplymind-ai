@@ -1193,11 +1193,16 @@ OpenAPI specification:
 ```text
 http://localhost:8000/openapi.json
 ```
+Production API
+
+```text
+https://supplymind-ai.onrender.com
+```
 
 Production API documentation:
 
 ```text
-YOUR_RENDER_BACKEND_URL/docs
+https://supplymind-ai.onrender.com/docs
 ```
 
 Major API areas include:
@@ -1796,44 +1801,6 @@ SupplyMind demonstrates several AI Engineering capabilities within one coherent 
 
 ---
 
-# What This Project Demonstrates
-
-SupplyMind was built to demonstrate the transition from:
-
-```text
-"I trained a model"
-```
-
-to:
-
-```text
-"I engineered an AI-powered product around a measurable business problem."
-```
-
-It combines software engineering, machine learning, generative AI, data infrastructure, deployment, observability, and product thinking.
-
-The architecture deliberately uses different AI techniques for the problems they solve best:
-
-```text
-Structured shipment data
-        ↓
-Classical Machine Learning
-
-Enterprise documents
-        ↓
-Embeddings + RAG
-
-External unstructured news
-        ↓
-Structured LLM Extraction
-
-Operational investigation
-        ↓
-LLM + Tools + Context
-```
-
----
-
 # Resources
 
 ### Live Product
@@ -1871,13 +1838,3 @@ SupplyMind AI was developed as the graduation project for the **Ironhack AI Engi
 # Project Status
 
 SupplyMind is a portfolio and graduation project demonstrating an end-to-end AI Engineering architecture.
-
-The project continues to evolve as remaining experimental components are hardened and the ML lifecycle is further automated.
-
----
-
-## Final Note
-
-SupplyMind is built around a simple idea:
-
-> **A useful AI system should not only predict what may happen. It should help people understand why it matters and give them the context they need to decide what to do next.**
